@@ -1,9 +1,10 @@
 from __future__ import (print_function, division, absolute_import)
 
-from interface import Interface, OVRInterface
 
 import sys
-import games.simple
+
+from games import simple
+from interface import Interface, OVRInterface
 
 USE_OVR = False
 
@@ -25,7 +26,7 @@ def main():
 
     Game = None
     if parsed_args.game == 'simple':
-        Game = games.simple.new(InterfaceClass)
+        Game = simple.new(InterfaceClass)
 
     if Game:
         with Game() as game:

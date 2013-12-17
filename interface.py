@@ -5,9 +5,10 @@ viewport / multiple-rendering logic.
 
 from __future__ import (print_function, division, absolute_import)
 
+import pyglet
+
 import logger
 
-import pyglet
 try:
     import ovr
 except Exception:
@@ -51,16 +52,16 @@ class Interface(object):
 class OVRInterface(Interface):
     def __enter__(self):
         ovr.System.Init(ovr.Log.ConfigureDefaultLog(ovr.LogMask_All))
-        dm = ovr.DeviceManager.Create()
-        assert dm
-        _devs = dm.EnumerateHMDDevices()
+        self.dm = ovr.DeviceManager.Create()
+        assert self.dm
+        self._devs = self.dm.EnumerateHMDDevices()
         self.devices = []
         while True:
-            dev = _devs.CreateDevice()
+            dev = self._devs.CreateDevice()
             if not dev:
                 break
             self.devices.append(dev)
-            if not _devs.Next():
+            if not self._devs.Next():
                 break
 
         print(self.devices)
@@ -108,10 +109,12 @@ class OVRInterface(Interface):
             self.draw('right')
 
 
-
-        def __exit__(self, type, value, traceback):
-            logger.log("OVRInterface exited succesfully.")
-            del self.device
-            del self.devices
-            ovr.System.Destroy()
+    def __exit__(self, type, value, traceback):
+        logger.log("OVRInterface exited succesfully.")
+        del self.device
+        del self.devices
+        del self._devs
+        del self.dm
+        # TODO: This is a bug with duangle's ovr bindings.
+        # ovr.System.Destroy()
 
