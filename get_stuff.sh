@@ -22,5 +22,10 @@ checkret
 make -j
 checkret
 
+cd ..
+
+python setup.py develop
+checkret
+
 echo "==== Hopefully everything went OK. ==== "
 
