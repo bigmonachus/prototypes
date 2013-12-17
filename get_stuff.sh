@@ -16,7 +16,7 @@ else
     cd ..
 fi
 
-if [ -d OculusSDK && ! -f oculus_lock]; then
+if [ -d OculusSDK ] && [ ! -f oculus_lock ]; then
     echo "==== Copying OculusSDK dir to python-ovr dir and building... ===="
     cp -rf ./OculusSDK ./python-ovr/ovr-src
     cd python-ovr/ovr-src/
@@ -31,6 +31,14 @@ if [ -d OculusSDK && ! -f oculus_lock]; then
 
     python setup.py develop
     checkret
+
+    cd ..
+
+    touch oculus_lock
+fi
+
+if [ ! -f oculus_lock ]; then
+    echo "To rebuild oculus: $> rm oculus_lock"
 fi
 
 echo "==== Hopefully everything went OK. ==== "
