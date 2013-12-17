@@ -1,3 +1,8 @@
+'''
+An interface opens a window, sets up a GL context and controls VR specific
+viewport / multiple-rendering logic.
+'''
+
 from __future__ import (print_function, division, absolute_import)
 
 import logger
@@ -10,28 +15,28 @@ except Exception:
 
 
 class Interface(object):
-    '''
-    An interface wraps input/output
-    '''
     def __enter__(self):
-        print("ENTER")
         self.window = pyglet.window.Window(1280, 800)
         self._setup_events()
-        print("Self is", self)
         return self
 
 
     def _setup_events(self):
         @self.window.event
         def on_draw():
-            self.draw()
+            print("i am simple")
+            self.draw('center')
 
 
     def idle(self):
         pass
 
 
-    def draw(self):
+    def draw(self, eye):
+        '''
+        :eye: Can be "left" or "right".
+            For non-vr applications, it doesn't really matter.
+        '''
         pass
 
 
@@ -94,8 +99,14 @@ class OVRInterface(Interface):
         return self
 
 
-        def run(self):
-            pyglet.app.run()
+    def _setup_events(self):
+        super(OVRInterface, self)._setup_events()
+        @self.window.event
+        def on_draw():
+            print("i am complex")
+            self.draw('left')
+            self.draw('right')
+
 
 
         def __exit__(self, type, value, traceback):
