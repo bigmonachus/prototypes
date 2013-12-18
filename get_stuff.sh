@@ -16,6 +16,21 @@ else
     cd ..
 fi
 
+cd python-ovr
+python setup.py develop
+cd ..
+
+if [ ! -d python-glm ]; then
+    hg clone https://bitbucket.org/duangle/python-glm
+else
+    cd python-glm
+    hg pull -u
+    cd ..
+fi
+cd python-glm
+python setup.py develop
+cd ..
+
 if [ -d OculusSDK ] && [ ! -f oculus_lock ]; then
     echo "==== Copying OculusSDK dir to python-ovr dir and building... ===="
     cp -rf ./OculusSDK ./python-ovr/ovr-src
@@ -37,8 +52,8 @@ if [ -d OculusSDK ] && [ ! -f oculus_lock ]; then
     touch oculus_lock
 fi
 
-if [ ! -f oculus_lock ]; then
-    echo "To rebuild oculus: $> rm oculus_lock"
+if [ -f oculus_lock ]; then
+    echo "== To rebuild oculus: $> rm oculus_lock"
 fi
 
 echo "==== Hopefully everything went OK. ==== "

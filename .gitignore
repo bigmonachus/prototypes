@@ -1,6 +1,9 @@
 # OVR imports
 OculusSDK
+
+# Duangle imports
 python-ovr
+python-glm
 
 # Python crap
 *.pyc

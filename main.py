@@ -6,7 +6,9 @@ import sys
 from games import simple
 from interface import Interface, OVRInterface
 
+
 USE_OVR = False
+
 
 def main():
     global USE_OVR
