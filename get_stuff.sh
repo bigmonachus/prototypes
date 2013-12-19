@@ -7,6 +7,17 @@ checkret () {
     fi
 }
 
+if [ ! -d pyopengl-cffi ] && [ ! -f build_lock ]; then
+    hg clone https://bitbucket.org/duangle/pyopengl-cffi
+    cd pyopengl-cffi
+    python setup.py develop
+    cd ..
+elif [ ! -f build_lock ]; then
+    cd pyopengl-cffi
+    hg pull -u
+    python setup.py develop
+    cd ..
+fi
 
 if [ ! -d python-glm ] && [ ! -f build_lock ]; then
     hg clone https://bitbucket.org/duangle/python-glm

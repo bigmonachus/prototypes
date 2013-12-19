@@ -12,11 +12,11 @@ import universe
 
 
 def test_modelviewinit():
-    u = universe.Universe()
+    u = universe.Universe(universe.Agent())
     u.modelview.equals(mat4x4.identity())
 
 def test_modelpushpop():
-    u = universe.Universe()
+    u = universe.Universe(universe.Agent())
     assert u.matstack == []
     u.push(mat4x4.scale_f(2))
     expected = mat4x4.identity().mul_mat4(mat4x4.scale_f(2))

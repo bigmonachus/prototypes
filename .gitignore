@@ -4,6 +4,7 @@ OculusSDK
 # Duangle imports
 python-ovr
 python-glm
+pyopengl-cffi
 
 # Python crap
 *.pyc
