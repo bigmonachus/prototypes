@@ -57,8 +57,6 @@ if [ -d OculusSDK ] && [ ! -f build_lock ]; then
     build_ovr
 
     touch build_lock
-elif [ ! -f build_lock ]; then
-    build_ovr
 fi
 
 if [ -f build_lock ]; then
