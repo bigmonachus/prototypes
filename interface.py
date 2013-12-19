@@ -7,43 +7,35 @@ from __future__ import (print_function, division, absolute_import)
 
 import pyglet
 
-import logger
-
 try:
     import ovr
 except Exception:
     logger.log('No support for ovr.')
 
+import logger
+import renderer
+
 
 class Interface(object):
     def __enter__(self):
-        self.window = pyglet.window.Window(1280, 800)
+        self._window = pyglet.window.Window(1280, 800)
         self._setup_events()
         self.begin()
         return self
 
 
     def _setup_events(self):
-        @self.window.event
+        @self._window.event
         def on_draw():
-            print("i am simple")
-            self.draw('center')
+            renderer.render_universe(self.universe, 'center')
 
 
     def begin(self):
         'Do setup after loading the window and setting up a GL context.'
-        pass
+        self.program = None  # Set this to a default, perspective projected.
 
 
-    def idle(self):
-        pass
-
-
-    def draw(self, eye):
-        '''
-        :eye: Can be "left" or "right".
-            For non-vr applications, it doesn't really matter.
-        '''
+    def tick(self):
         pass
 
 
@@ -95,11 +87,11 @@ class OVRInterface(Interface):
 
         # Simulate fullscreen by making an undecorated window right where the
         # screen is.
-        self.window = pyglet.window.Window(
+        self._window = pyglet.window.Window(
                 width = 1280, height = 800, screen = oculus_screen,
                 vsync = True, config = ovr_config,
                 style = pyglet.window.Window.WINDOW_STYLE_BORDERLESS)
-        self.window.set_location(oculus_screen.x, oculus_screen.y)
+        self._window.set_location(oculus_screen.x, oculus_screen.y)
 
         self._setup_events()
         self.begin()
@@ -109,11 +101,11 @@ class OVRInterface(Interface):
 
     def _setup_events(self):
         super(OVRInterface, self)._setup_events()
-        @self.window.event
+        @self._window.event
         def on_draw():
             print("i am complex")
-            self.draw('left')
-            self.draw('right')
+            renderer.render_universe(self.universe, 'left')
+            renderer.render_universe(self.universe, 'right')
 
 
     def __exit__(self, type, value, traceback):

@@ -25,6 +25,10 @@ class Universe(object):
         self.root_agent = root_agent
 
 
+    def tick(self):
+        self.root_agent.tick()
+
+
     def push(self, mat):
         'Push current modelview and then multiply it by mat'
         self.matstack.append(self.modelview)
