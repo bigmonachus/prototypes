@@ -25,22 +25,25 @@ class Interface(object):
 
 
     def _setup_events(self):
+        self.event_loop = pyglet.app.EventLoop()
         @self._window.event
         def on_draw():
+            # TODO: Fire rendering asynchronously.
             renderer.render_universe(self.universe, 'center')
 
 
     def begin(self):
         'Do setup after loading the window and setting up a GL context.'
         self.program = None  # Set this to a default, perspective projected.
+        pyglet.clock.schedule_interval(self.tick, 0.001)
 
 
-    def tick(self):
-        pass
+    def tick(self, dt):
+        self.universe.tick()
 
 
     def run(self):
-        pyglet.app.run()
+        self.event_loop.run()
 
 
     def __exit__(self, type, value, traceback):

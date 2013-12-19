@@ -88,4 +88,4 @@ def draw_handles(render_handles):
 
 
 def render_universe(universe, eye):
-    draw_handles(universe.root_agent.render_handles)
+    draw_handles(universe.root_agent.get_render_handles())

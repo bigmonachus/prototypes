@@ -57,12 +57,17 @@ def cook_triangle():
 
     return RenderHandle.from_triangles(program, vertices, colors)
 
+
 class TriangleAgent(Agent):
     '''This dude doesn't do much, but when drawn, it appears to be a triangle.
     Everytime he can, he proudly proclaims his existence
     '''
     def __init__(self):
         self.render_handles = [cook_triangle()]
+
+
+    def get_render_handles(self):
+        return self.render_handles
 
 
     def tick(self):
@@ -73,13 +78,15 @@ class SimpleUniverse(Universe):
     'Nothing happens here, created for the sake of completeness...'
     pass
 
+
 ################################################################################
+
 
 def new(interface_class):
     """This is how we define a new game.
     interface_class can be a Desktop interface or a
     Rift interface, but we don't care. We just want to inherit from it.
-    In this case, we do the only essentia thing: Specifying a universe.
+    In this case, we do the only essential thing: Specifying a universe.
     """
     class SimpleGame(interface_class):
         def begin(self):
