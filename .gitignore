@@ -9,5 +9,8 @@ pyopengl-cffi
 # Python crap
 *.pyc
 
+# apitrace files
+*.trace
+
 # get_stuff.sh crap
 build_lock

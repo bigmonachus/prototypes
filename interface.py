@@ -19,6 +19,7 @@ class Interface(object):
     def __enter__(self):
         self.window = pyglet.window.Window(1280, 800)
         self._setup_events()
+        self.begin()
         return self
 
 
@@ -27,6 +28,11 @@ class Interface(object):
         def on_draw():
             print("i am simple")
             self.draw('center')
+
+
+    def begin(self):
+        'Do setup after loading the window and setting up a GL context.'
+        pass
 
 
     def idle(self):
@@ -96,6 +102,7 @@ class OVRInterface(Interface):
         self.window.set_location(oculus_screen.x, oculus_screen.y)
 
         self._setup_events()
+        self.begin()
 
         return self
 
