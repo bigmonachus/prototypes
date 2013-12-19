@@ -8,32 +8,19 @@ checkret () {
 }
 
 
-if [ ! -d python-ovr ]; then
-    hg clone https://bitbucket.org/duangle/python-ovr
-else
-    cd python-ovr
-    hg pull -u
-    cd ..
-fi
-
-cd python-ovr
-python setup.py develop
-cd ..
-
-if [ ! -d python-glm ]; then
+if [ ! -d python-glm ] && [ ! -f build_lock ]; then
     hg clone https://bitbucket.org/duangle/python-glm
-else
+    cd python-glm
+    python setup.py develop
+    cd ..
+elif [ ! -f build_lock ]; then
     cd python-glm
     hg pull -u
+    python setup.py develop
     cd ..
 fi
-cd python-glm
-python setup.py develop
-cd ..
 
-if [ -d OculusSDK ] && [ ! -f oculus_lock ]; then
-    echo "==== Copying OculusSDK dir to python-ovr dir and building... ===="
-    cp -rf ./OculusSDK ./python-ovr/ovr-src
+build_ovr () {
     cd python-ovr/ovr-src/
 
     ./ConfigurePermissionsAndPackages.sh
@@ -49,11 +36,33 @@ if [ -d OculusSDK ] && [ ! -f oculus_lock ]; then
 
     cd ..
 
-    touch oculus_lock
+    touch build_lock
+}
+
+if [ -d OculusSDK ] && [ ! -f build_lock ]; then
+    if [ ! -d python-ovr ]; then
+        hg clone https://bitbucket.org/duangle/python-ovr
+    else
+        cd python-ovr
+        hg pull -u
+        cd ..
+    fi
+
+    cd python-ovr
+    python setup.py develop
+    cd ..
+    echo "==== Copying OculusSDK dir to python-ovr dir and building... ===="
+    cp -rf ./OculusSDK ./python-ovr/ovr-src
+
+    build_ovr
+
+    touch build_lock
+elif [ ! -f build_lock ]; then
+    build_ovr
 fi
 
-if [ -f oculus_lock ]; then
-    echo "== To rebuild oculus: $> rm oculus_lock"
+if [ -f build_lock ]; then
+    echo "== To fetch and rebuild: $> rm build_lock"
 fi
 
 echo "==== Hopefully everything went OK. ==== "

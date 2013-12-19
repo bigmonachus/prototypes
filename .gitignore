@@ -9,4 +9,4 @@ python-glm
 *.pyc
 
 # get_stuff.sh crap
-oculus_lock
+build_lock
