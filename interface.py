@@ -39,7 +39,7 @@ class Interface(object):
 
 
     def tick(self, dt):
-        self.universe.tick()
+        self.universe.tick(dt)
 
 
     def run(self):

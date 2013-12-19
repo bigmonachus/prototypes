@@ -70,7 +70,7 @@ class TriangleAgent(Agent):
         return self.render_handles
 
 
-    def tick(self):
+    def tick(self, dt):
         print('I am a triangle!')
 
 

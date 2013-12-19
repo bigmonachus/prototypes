@@ -35,8 +35,8 @@ class Universe(object):
         self.root_agent = root_agent
 
 
-    def tick(self):
-        self.root_agent.tick()
+    def tick(self, dt):
+        self.root_agent.tick(dt)
 
 
     def push(self, mat):
