@@ -26,6 +26,8 @@ def main():
 
     parsed_args = parser.parse_args(sys.argv[1:])
 
+    global USE_OVR
+
     USE_OVR = parsed_args.ovr
     InterfaceClass = Interface
     if USE_OVR:

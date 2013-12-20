@@ -6,7 +6,7 @@ viewport / multiple-rendering logic.
 from __future__ import (print_function, division, absolute_import)
 
 import pyglet
-from gl import glClear, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
+from gl import glClear, glViewport, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
 try:
     import ovr
 except Exception:
@@ -15,17 +15,19 @@ except Exception:
 import logger
 import renderer
 
+def get_resolution():
+    return 1280, 800
 
 class Interface(object):
     def __enter__(self):
-        self._window = pyglet.window.Window(1280, 800)
+        w, h = get_resolution()
+        self._window = pyglet.window.Window(w, h)
         self._setup_events()
         self.begin()
         return self
 
 
     def _setup_events(self):
-        self.event_loop = pyglet.app.EventLoop()
         @self._window.event
         def on_draw():
             # TODO: Fire rendering asynchronously.
@@ -44,7 +46,7 @@ class Interface(object):
 
 
     def run(self):
-        self.event_loop.run()
+        pyglet.app.run()
 
 
     def __exit__(self, type, value, traceback):
@@ -107,8 +109,12 @@ class OVRInterface(Interface):
         super(OVRInterface, self)._setup_events()
         @self._window.event
         def on_draw():
-            print("i am complex")
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            w,h = get_resolution()
+            half = int(w/2)
+            glViewport(0,0, half, h)
             renderer.render_agent(self.universe, 'left')
+            glViewport(half, 0, half, h)
             renderer.render_agent(self.universe, 'right')
 
 

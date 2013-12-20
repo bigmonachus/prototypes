@@ -9,9 +9,12 @@ from glm import mat4x4, vec3
 from math import sin
 
 import primitivelib
-from interface import Interface
+from interface import Interface, OVRInterface
 from renderer import Program, RenderHandle, create_shader, draw_handles
 from universe import Agent
+
+
+USE_OVR = False
 
 
 class HappyCube(primitivelib.Cube):
@@ -39,7 +42,8 @@ class MyUniverse(Agent):
     to return.
     """
     def __init__(self):
-        primitivelib.init_gl()
+        global USE_OVR
+        primitivelib.init_gl(USE_OVR)
         self.cube = HappyCube()
 
     def get_render_handles(self):
@@ -59,6 +63,10 @@ def new(interface_class):
     Rift interface, but we don't care. We just want to inherit from it.
     In this case, we do the only essential thing: Specifying a universe.
     """
+    global USE_OVR
+    if interface_class is OVRInterface:
+        USE_OVR = True
+
     class SimpleGame(interface_class):
         def begin(self):
             super(SimpleGame, self).begin()

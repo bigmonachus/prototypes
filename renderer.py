@@ -33,6 +33,7 @@ class Program(object):
         if name not in self.uniforms:
             loc = glGetUniformLocation(self.id, name)
             assert loc >= 0
+            self.uniforms[name] = loc
         else:
             loc = self.uniforms[name]
         if type(thing) is glm.types.mat4x4:

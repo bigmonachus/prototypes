@@ -4,19 +4,28 @@ from __future__ import (print_function, division, absolute_import)
 from gl import *
 from glm import mat4x4
 
+from interface import get_resolution
 from renderer import Program, create_shader, RenderHandle
 from universe import Agent
 
 
 __all__ = ['Cube']
 
-
 PROGRAM = None
+ASPECT_RATIO = 1.0
 
-def init_gl():
+
+def init_gl(with_ovr):
+    global ASPECT_RATIO
+    w, h = get_resolution()
+    if not with_ovr:
+        ASPECT_RATIO = w / h
+    else:
+        ASPECT_RATIO = int(w/2) / h
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
     glEnable(GL_CULL_FACE)
     glCullFace(GL_FRONT)  # Defined cube with ccw faces...
+
 
 class Primitive(Agent):
     def __init__(self):
@@ -100,11 +109,10 @@ class Cube(Primitive):
                 ]
 
         colors = [item for sublist in
-                [[0.5 , 0.1 , 0.5] for n in xrange(36)] for item in sublist]
+                [[0.5 , 0.1 , 0.5] for n in xrange(36)]
+                for item in sublist]
 
         self.render_handle = RenderHandle.from_triangles(PROGRAM, vertices, colors)
-
-
 
 
 class PrimitiveProgram(Program):
@@ -170,11 +178,8 @@ class PrimitiveProgram(Program):
         self.attach_shader(create_shader(frag_src, GL_FRAGMENT_SHADER, 'frag'))
         self.link()
 
-
-        #TODO: aspect ratio should be gotten from somewhere else
-        persp_mat = mat4x4.perspective(75.0, 1280/800, 0.001, 100)
+        global ASPECT_RATIO
+        persp_mat = mat4x4.perspective(75.0, ASPECT_RATIO, 0.001, 100)
 
         self.set_uniform('persp', persp_mat)
-        self.set_uniform('transform.axis', (1,0,0))
-        self.set_uniform('transform.angle', (1.0, ))
-        self.set_uniform('transform.translation', (0,0,-10))
+
