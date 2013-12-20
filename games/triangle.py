@@ -1,7 +1,3 @@
-'''Uses all functionality provided by the classes in the interface module.
-Draws a bouncing cube in perspective, desktop or vr; using a shader pipeline.
-'''
-
 from __future__ import (print_function, division, absolute_import)
 
 from gl import *
@@ -34,9 +30,9 @@ def make_simple_program():
         out_color = vec4(vs_color,1.0);
     }
     '''
-    p = Program(glCreateProgram())
-    p.attach_shader(create_shader(vertex_src, GL_VERTEX_SHADER))
-    p.attach_shader(create_shader(frag_src, GL_FRAGMENT_SHADER))
+    p = Program(glCreateProgram(), 'simple_program')
+    p.attach_shader(create_shader(vertex_src, GL_VERTEX_SHADER, 'vertex'))
+    p.attach_shader(create_shader(frag_src, GL_FRAGMENT_SHADER, 'frag'))
     p.link()
     return p
 
