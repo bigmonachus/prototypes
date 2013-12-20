@@ -2,6 +2,7 @@ from __future__ import (print_function, division, absolute_import)
 
 
 from gl import *
+import glm
 import re
 
 import logger as log
@@ -25,6 +26,24 @@ class Program(object):
         self.enabled = False
         self.id = id
         self.name = name
+        self.uniforms = {}
+
+    def set_uniform(self, name, thing):
+        """Currently doesn't support int uniforms"""
+        if name not in self.uniforms:
+            loc = glGetUniformLocation(self.id, name)
+            assert loc >= 0
+        else:
+            loc = self.uniforms[name]
+        if type(thing) is glm.types.mat4x4:
+            with self:
+                glUniformMatrix4fv(loc, False, thing.to_c_array())
+        if len(thing) == 3:
+            with self:
+                glUniform3fv(loc, thing)
+        if len(thing) == 1:
+            with self:
+                glUniform1fv(loc, thing)
 
 
     def attach_shader(self, shader):

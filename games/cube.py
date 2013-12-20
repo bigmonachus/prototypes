@@ -76,29 +76,14 @@ def make_persp_program():
     p.attach_shader(create_shader(frag_src, GL_FRAGMENT_SHADER, 'frag'))
     p.link()
 
-    persp_loc = glGetUniformLocation(p.id, 'persp')
-    assert persp_loc >= 0
-
-    axis_loc = glGetUniformLocation(p.id, 'transform.axis')
-    assert axis_loc >= 0
-
-    angle_loc = glGetUniformLocation(p.id, 'transform.angle')
-    assert angle_loc >= 0
-
-    trans_loc = glGetUniformLocation(p.id, 'transform.translation')
-    assert trans_loc >= 0
-
     #TODO: aspect ratio should be gotten from somewhere else
     persp_mat = mat4x4.perspective(75.0, 1280/800, 0.001, 10)
-    with p:
-        glUniformMatrix4fv(
-                persp_loc, GL_FALSE, persp_mat.to_c_array())
-        glUniform3fv(
-                axis_loc, (1,0,0))
-        glUniform1fv(
-                angle_loc, (1.0,))
-        glUniform3fv(
-                trans_loc, (0,0,-10))
+
+    p.set_uniform('persp', persp_mat)
+    p.set_uniform('transform.axis', (1,0,0))
+    p.set_uniform('transform.angle', (1.0, ))
+    p.set_uniform('transform.translation', (0,0,-10))
+
 
     return p
 
