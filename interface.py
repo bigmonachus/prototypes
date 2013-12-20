@@ -6,7 +6,7 @@ viewport / multiple-rendering logic.
 from __future__ import (print_function, division, absolute_import)
 
 import pyglet
-
+from gl import glClear, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
 try:
     import ovr
 except Exception:
@@ -29,7 +29,8 @@ class Interface(object):
         @self._window.event
         def on_draw():
             # TODO: Fire rendering asynchronously.
-            renderer.render_universe(self.universe, 'center')
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            renderer.render_agent(self.universe, 'center')
 
 
     def begin(self):
@@ -107,8 +108,8 @@ class OVRInterface(Interface):
         @self._window.event
         def on_draw():
             print("i am complex")
-            renderer.render_universe(self.universe, 'left')
-            renderer.render_universe(self.universe, 'right')
+            renderer.render_agent(self.universe, 'left')
+            renderer.render_agent(self.universe, 'right')
 
 
     def __exit__(self, type, value, traceback):

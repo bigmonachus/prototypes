@@ -9,10 +9,6 @@ class Agent(object):
     at draw time. It has a tick() function that returns a new, mutated version
     of itself
     '''
-    def __init__(self):
-        pass
-
-
     def get_render_handles(self):
         """Returns handles that the renderer understands at draw time.
         An agent may take care of this itself, or call someone who knows
@@ -23,28 +19,6 @@ class Agent(object):
         return []
 
 
-    def tick():
-        pass
-
-
-class Universe(object):
-    def __init__(self, root_agent):
-        self.modelview = mat4x4.identity()
-        self.matstack = []
-        self.head = ()
-        self.root_agent = root_agent
-
-
     def tick(self, dt):
-        self.root_agent.tick(dt)
-
-
-    def push(self, mat):
-        'Push current modelview and then multiply it by mat'
-        self.matstack.append(self.modelview)
-        self.modelview = self.modelview.mul_mat4(mat)
-
-
-    def pop(self):
-        self.modelview = self.matstack.pop()
+        pass
 

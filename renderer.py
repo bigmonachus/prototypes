@@ -114,8 +114,8 @@ def draw_handles(render_handles):
             glDrawArrays(GL_TRIANGLES, 0, render_handle.num_elements)
 
 
-def render_universe(universe, eye):
-    draw_handles(universe.root_agent.get_render_handles())
+def render_agent(agent, eye):
+    draw_handles(agent.get_render_handles())
 
 
 # Got most of this from Beige: ================================
