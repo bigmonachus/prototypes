@@ -13,6 +13,10 @@ __all__ = ['Cube']
 
 PROGRAM = None
 
+def init_gl():
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+    glEnable(GL_CULL_FACE)
+    glCullFace(GL_FRONT)  # Defined cube with ccw faces...
 
 class Primitive(Agent):
     def __init__(self):

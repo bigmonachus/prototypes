@@ -8,17 +8,17 @@ from gl import *
 from glm import mat4x4, vec3
 from math import sin
 
+import primitivelib
 from interface import Interface
-from primitivelib import Cube
 from renderer import Program, RenderHandle, create_shader, draw_handles
 from universe import Agent
 
 
-class HappyCube(Cube):
+class HappyCube(primitivelib.Cube):
     def __init__(self):
         super(HappyCube, self).__init__()
         self.rot_vel = 0.5  # Half turn per second
-        self.rotation = ((1,0.7,0.3), 0.0)
+        self.rotation = ((0.9,0.7,-0.3), 0.0)
         self.translation = (0, 0, -10)
         self.cumtime = 0
 
@@ -33,8 +33,13 @@ class HappyCube(Cube):
 
 
 class MyUniverse(Agent):
-    """This universe is redundant. Written to show how things should work."""
+    """The difference between a universe and an agent is subtle. A universe has more
+    responsibilities. This one is in charge of calling primitivelib's init_gl function.
+    A universe also handles head movement and decides which agent's render handles
+    to return.
+    """
     def __init__(self):
+        primitivelib.init_gl()
         self.cube = HappyCube()
 
     def get_render_handles(self):
