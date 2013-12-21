@@ -9,8 +9,6 @@ from renderer import Program, create_shader, RenderHandle
 from universe import Agent
 
 
-__all__ = ['Cube']
-
 PROGRAM = None
 ASPECT_RATIO = 1.0
 
@@ -115,6 +113,8 @@ class Cube(Primitive):
         self.render_handle = RenderHandle.from_triangles(PROGRAM, vertices, colors)
 
 
+
+
 class PrimitiveProgram(Program):
     def __init__(self):
         super(PrimitiveProgram, self).__init__(glCreateProgram(), 'primitive_program')
@@ -150,6 +150,8 @@ class PrimitiveProgram(Program):
             vec3 translation;
         };
         uniform Transform transform;
+        uniform float eye_ipd;
+        uniform float persp_offset;
 
         uniform mat4 persp;
 
@@ -158,8 +160,25 @@ class PrimitiveProgram(Program):
         void main(void)
         {
             vs_color = in_color;
-            gl_Position = persp * ((rotation_matrix(transform.axis, transform.angle) *
-                vec4(in_pos,1.0)) + vec4(transform.translation, 0.0));
+            vec3 translation = transform.translation;
+
+            mat4 vt = mat4(
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                eye_ipd, 0.0, 0.0, 1.0);
+
+            mat4 translate = mat4(
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                translation.x, translation.y, translation.z, 1.0);
+
+            mat4 view = translate * rotation_matrix(transform.axis, transform.angle);
+
+            vec4 view_vec = vt * view * vec4(in_pos, 1.0);
+
+            gl_Position = persp * view_vec;
         }
         '''
         frag_src = '''
@@ -177,9 +196,15 @@ class PrimitiveProgram(Program):
         self.attach_shader(create_shader(vertex_src, GL_VERTEX_SHADER, 'vertex'))
         self.attach_shader(create_shader(frag_src, GL_FRAGMENT_SHADER, 'frag'))
         self.link()
+        self.setup_persp(None)
 
-        global ASPECT_RATIO
-        persp_mat = mat4x4.perspective(75.0, ASPECT_RATIO, 0.001, 100)
+    def setup_persp(self, matrix):
+        if matrix == None:
+            global ASPECT_RATIO
+            persp_mat = mat4x4.perspective(75.0, ASPECT_RATIO, 0.001, 100)
+        else:
+            persp_mat = matrix
 
         self.set_uniform('persp', persp_mat)
+
 

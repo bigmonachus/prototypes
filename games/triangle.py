@@ -72,7 +72,15 @@ class TriangleAgent(Agent):
 
 class SimpleUniverse(Universe):
     'Nothing happens here, created for the sake of completeness...'
-    pass
+    def __init__(self):
+        super(SimpleUniverse, self).__init__()
+        self.triangle = TriangleAgent()
+
+    def get_render_handles(self):
+        return self.triangle.get_render_handles()
+
+    def tick(self,dt):
+        self.triangle.tick(dt)
 
 
 ################################################################################
@@ -87,6 +95,6 @@ def new(interface_class):
     class SimpleGame(interface_class):
         def begin(self):
             super(SimpleGame, self).begin()
-            self.universe = SimpleUniverse(TriangleAgent())
+            self.universe = SimpleUniverse()
     return SimpleGame
 

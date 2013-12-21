@@ -30,9 +30,12 @@ class Interface(object):
     def _setup_events(self):
         @self._window.event
         def on_draw():
-            # TODO: Fire rendering asynchronously.
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            renderer.render_agent(self.universe, 'center')
+            self._draw()
+
+
+    def _draw(self):
+        renderer.render_universe(self.universe, 'center')
 
 
     def begin(self):
@@ -70,11 +73,8 @@ class OVRInterface(Interface):
 
         print(self.devices)
         self.device = self.devices[0]
-        devinfo = ovr.HMDInfo()
-        assert self.device.GetDeviceInfo(devinfo)
-
-        screen_pos = (devinfo.DesktopX, devinfo.DesktopY)
-        print(screen_pos)
+        self.devinfo = ovr.HMDInfo()
+        assert self.device.GetDeviceInfo(self.devinfo)
 
         ############### Search for ovr screen.
         # The only case where the default display is not what we want is some
@@ -94,10 +94,10 @@ class OVRInterface(Interface):
         # Simulate fullscreen by making an undecorated window right where the
         # screen is.
         self._window = pyglet.window.Window(
-                width = 1280, height = 800, screen = oculus_screen,
+                fullscreen = True,
+                screen = oculus_screen,
                 vsync = True, config = ovr_config,
                 style = pyglet.window.Window.WINDOW_STYLE_BORDERLESS)
-        self._window.set_location(oculus_screen.x, oculus_screen.y)
 
         self._setup_events()
         self.begin()
@@ -105,17 +105,17 @@ class OVRInterface(Interface):
         return self
 
 
-    def _setup_events(self):
-        super(OVRInterface, self)._setup_events()
-        @self._window.event
-        def on_draw():
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    def _setup_fb_target(self):
+        pass
+
+
+    def _draw(self):
             w,h = get_resolution()
             half = int(w/2)
             glViewport(0,0, half, h)
-            renderer.render_agent(self.universe, 'left')
+            renderer.render_universe(self.universe, 'left')
             glViewport(half, 0, half, h)
-            renderer.render_agent(self.universe, 'right')
+            renderer.render_universe(self.universe, 'right')
 
 
     def __exit__(self, type, value, traceback):

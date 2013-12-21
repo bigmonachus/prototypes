@@ -7,11 +7,12 @@ from __future__ import (print_function, division, absolute_import)
 from gl import *
 from glm import mat4x4, vec3
 from math import sin
+import ovr
 
 import primitivelib
 from interface import Interface, OVRInterface
 from renderer import Program, RenderHandle, create_shader, draw_handles
-from universe import Agent
+from universe import Agent, Universe
 
 
 USE_OVR = False
@@ -20,35 +21,38 @@ USE_OVR = False
 class HappyCube(primitivelib.Cube):
     def __init__(self):
         super(HappyCube, self).__init__()
-        self.rot_vel = 0.5  # Half turn per second
+        self.rot_vel = 0.5
         self.rotation = ((0.9,0.7,-0.3), 0.0)
-        self.translation = (0, 0, -10)
+        self.translation = (0, 0, -15)
         self.cumtime = 0
+
 
     def tick(self, dt):
         self.cumtime += dt
         self.rotation = (self.rotation[0], self.rotation[1] + self.rot_vel*2*3.14*dt)
         self.translation = (
                 self.translation[0],
-                -5 + 7 * abs(sin(3 * self.cumtime)),
+                -5 + 9 * abs(sin(2 * self.cumtime)),
                 self.translation[2],
                 )
 
 
-class MyUniverse(Agent):
-    """The difference between a universe and an agent is subtle. A universe has more
-    responsibilities. This one is in charge of calling primitivelib's init_gl function.
-    A universe also handles head movement and decides which agent's render handles
-    to return.
-    """
+class MyUniverse(Universe):
     def __init__(self):
+        super(MyUniverse, self).__init__()
         global USE_OVR
         primitivelib.init_gl(USE_OVR)
         self.cube = HappyCube()
+        self.rift_persp = None
+        self.program = primitivelib.PROGRAM
+
 
     def get_render_handles(self):
         # get_render_handles is implemented for all primitives in primitivelib
+        glClearColor(1, 1, 1, 1)
+        glLineWidth(2)
         return self.cube.get_render_handles()
+
 
     def tick(self, dt):
         self.cube.tick(dt)
@@ -64,12 +68,17 @@ def new(interface_class):
     In this case, we do the only essential thing: Specifying a universe.
     """
     global USE_OVR
-    if interface_class is OVRInterface:
+    if interface_class == OVRInterface:
         USE_OVR = True
 
     class SimpleGame(interface_class):
         def begin(self):
             super(SimpleGame, self).begin()
             self.universe = MyUniverse()
+            if USE_OVR:
+                self.universe.devinfo = self.devinfo
+                self.universe.use_ovr = True
+                # self.universe.setup_rift_persp()
+
     return SimpleGame
 
