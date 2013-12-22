@@ -43,7 +43,6 @@ class MyUniverse(Universe):
         global USE_OVR
         primitivelib.init_gl(USE_OVR)
         self.cube = HappyCube()
-        self.rift_persp = None
         self.program = primitivelib.PROGRAM
 
 

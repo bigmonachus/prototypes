@@ -38,7 +38,7 @@ class Universe(Agent):
         self.matstack = []
         self.head = ()
         self.use_ovr = False
-        self.program = primitivelib.PROGRAM
+        self.program = None  # Set this up when sub-classing
 
 
     def push(self, mat):
@@ -66,8 +66,8 @@ class Universe(Agent):
         self.rift_persp.i00 = t / rift_ar
         self.rift_persp.i11 = t
         self.rift_persp.i22 = zfar / (znear - zfar)
-        self.rift_persp.i23 = (zfar + znear) / (znear - zfar)
-        self.rift_persp.i32 = -1
+        self.rift_persp.i32 = (zfar + znear) / (znear - zfar)
+        self.rift_persp.i23 = -1
 
         lens_separation = self.devinfo.LensSeparationDistance
         view_center = self.devinfo.HScreenSize / 4

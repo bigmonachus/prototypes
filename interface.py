@@ -110,12 +110,12 @@ class OVRInterface(Interface):
 
 
     def _draw(self):
-            w,h = get_resolution()
-            half = int(w/2)
-            glViewport(0,0, half, h)
-            renderer.render_universe(self.universe, 'left')
-            glViewport(half, 0, half, h)
-            renderer.render_universe(self.universe, 'right')
+        w, h = get_resolution()
+        half = int(w/2)
+        glViewport(0, 0, half, h)
+        renderer.render_universe(self.universe, 'left')
+        glViewport(half, 0, half, h)
+        renderer.render_universe(self.universe, 'right')
 
 
     def __exit__(self, type, value, traceback):
