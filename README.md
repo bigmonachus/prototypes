@@ -1,7 +1,10 @@
-Rift Prototypes
-===============
+The Larch
+=========
+Quick prototyping of VR (games | apps | "experiences") in python.
 
-### Linux only.
+![alt tag](http://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/M%C3%A9l%C3%A8ze_en_Automne.JPG/180px-M%C3%A9l%C3%A8ze_en_Automne.JPG)
+
+*Status:* _Linux only. WIP. Not of much use to anyone right now.._
 
 Setup
 -----
