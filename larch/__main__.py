@@ -1,6 +1,8 @@
 from __future__ import (print_function, division, absolute_import)
 
 
+import importlib
+import pkgutil
 import sys
 
 from interface import Interface, OVRInterface
@@ -11,8 +13,8 @@ USE_OVR = False
 
 def main():
     global USE_OVR
-    import pkgutil, importlib
-    game_names = [name for _, name, _ in pkgutil.iter_modules(['games'])]
+    game_names = [name[6:] for _, name, _ in pkgutil.walk_packages(['larch'])
+                     if name.startswith('games.')]
 
     from argparse import ArgumentParser
     parser = ArgumentParser()

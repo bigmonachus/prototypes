@@ -7,6 +7,13 @@ checkret () {
     fi
 }
 
+if [ ! -f build_lock ]; then
+    pip install --upgrade cffi
+    checkret
+    pip install --upgrade pyglet
+    checkret
+fi
+
 if [ ! -d pyopengl-cffi ] && [ ! -f build_lock ]; then
     hg clone https://bitbucket.org/duangle/pyopengl-cffi
     cd pyopengl-cffi
