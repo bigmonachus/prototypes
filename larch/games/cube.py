@@ -7,7 +7,6 @@ from __future__ import (print_function, division, absolute_import)
 from gl import *
 from glm import mat4x4, vec3
 from math import sin
-import ovr
 
 import primitivelib
 from interface import Interface, OVRInterface

@@ -10,7 +10,7 @@ from gl import glClear, glViewport, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT
 try:
     import ovr
 except Exception:
-    logger.log('No support for ovr.')
+    print('No support for ovr.')
 
 import logger
 import renderer
