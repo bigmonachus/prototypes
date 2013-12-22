@@ -5,8 +5,6 @@ from math import tan, atan
 
 from glm import mat4x4
 
-import primitivelib
-
 
 class Agent(object):
     '''An agent acts inside a universe. It provides a list of render handles

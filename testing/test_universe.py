@@ -4,20 +4,19 @@ from __future__ import (print_function, division, absolute_import)
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from glm import mat4x4
 
-import universe
+from larch import universe
 
 
 def test_modelviewinit():
-    u = universe.Universe(universe.Agent())
+    u = universe.Universe()
     u.modelview.equals(mat4x4.identity())
 
 
 def test_modelpushpop():
-    u = universe.Universe(universe.Agent())
+    u = universe.Universe()
     assert u.matstack == []
     u.push(mat4x4.scale_f(2))
     expected = mat4x4.identity().mul_mat4(mat4x4.scale_f(2))
