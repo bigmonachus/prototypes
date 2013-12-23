@@ -9,8 +9,7 @@ from glm import mat4x4, vec3
 from math import sin
 
 import primitivelib
-from interface import Interface, OVRInterface
-from renderer import Program, RenderHandle, create_shader, draw_handles
+from interface import Interface, OVRInterface, get_resolution
 from universe import Agent, Universe
 
 
@@ -22,7 +21,7 @@ class HappyCube(primitivelib.Cube):
         super(HappyCube, self).__init__()
         self.rot_vel = 0.5
         self.rotation = ((0.9,0.7,-0.3), 0.0)
-        self.translation = (0, 0, -15)
+        self.translation = (0, 0, -10)
         self.cumtime = 0
 
 
@@ -47,8 +46,6 @@ class MyUniverse(Universe):
 
     def get_render_handles(self):
         # get_render_handles is implemented for all primitives in primitivelib
-        glClearColor(1, 1, 1, 1)
-        glLineWidth(2)
         return self.cube.get_render_handles()
 
 
@@ -76,7 +73,6 @@ def new(interface_class):
             if USE_OVR:
                 self.universe.devinfo = self.devinfo
                 self.universe.use_ovr = True
-                # self.universe.setup_rift_persp()
 
     return SimpleGame
 

@@ -19,9 +19,20 @@ def get_resolution():
     return 1280, 800
 
 class Interface(object):
+    def __init__(self):
+        self.gl_config = pyglet.gl.Config(
+                major_version = 3,
+                minor_version = 2,
+                double_buffer = True,
+                depth_size = 24,
+                red_size = 8,
+                green_size = 8,
+                blue_size = 8)
+
     def __enter__(self):
         w, h = get_resolution()
-        self._window = pyglet.window.Window(w, h)
+
+        self._window = pyglet.window.Window(w, h, config=self.gl_config)
         self._setup_events()
         self.begin()
         return self
@@ -89,33 +100,31 @@ class OVRInterface(Interface):
         if not oculus_screen:
             logger.error("Oculus screen not found.")
 
-        ovr_config = pyglet.gl.Config(double_buffer = True)
-
         # Simulate fullscreen by making an undecorated window right where the
         # screen is.
         self._window = pyglet.window.Window(
                 fullscreen = True,
                 screen = oculus_screen,
-                vsync = True, config = ovr_config,
+                vsync = True, config = self.gl_config,
                 style = pyglet.window.Window.WINDOW_STYLE_BORDERLESS)
 
         self._setup_events()
+        rb_width = 1280
+        rb_height = 800
+        self.renderbuffer = renderer.RenderBuffer(rb_width, rb_height)
         self.begin()
 
         return self
 
 
-    def _setup_fb_target(self):
-        pass
-
-
     def _draw(self):
-        w, h = get_resolution()
-        half = int(w/2)
-        glViewport(0, 0, half, h)
-        renderer.render_universe(self.universe, 'left')
-        glViewport(half, 0, half, h)
-        renderer.render_universe(self.universe, 'right')
+        with self.renderbuffer:
+            w, h = get_resolution()
+            half = int(w/2)
+            glViewport(0, 0, half, h)
+            renderer.render_universe(self.universe, 'left')
+            glViewport(half, 0, half, h)
+            renderer.render_universe(self.universe, 'right')
 
 
     def __exit__(self, type, value, traceback):

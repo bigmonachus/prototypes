@@ -12,6 +12,18 @@ from options import renderer_options
 CURRENT_PROGRAM = 0
 
 
+def draw_handles(render_handles):
+    for render_handle in render_handles:
+        with render_handle.program:
+            glBindVertexArray(render_handle.vao)
+            glDrawArrays(GL_TRIANGLES, 0, render_handle.num_elements)
+
+
+def render_universe(universe, eye):
+    universe.setup_rift_persp(eye, 0.1, 1000)
+    draw_handles(universe.get_render_handles())
+
+
 def create_shader(src, gl_type, name):
     'src is a string. gl_type is GL_VERTEX_SHADER et al.'
     s = glCreateShader(gl_type)
@@ -23,7 +35,6 @@ def create_shader(src, gl_type, name):
 
 class Program(object):
     def __init__(self, id, name):
-        self.enabled = False
         self.id = id
         self.name = name
         self.uniforms = {}
@@ -67,7 +78,7 @@ class Program(object):
 
 
     def __exit__(self, type, value, traceback):
-        self.enabled = False
+        pass
 
 
 class RenderHandle(object):
@@ -108,16 +119,56 @@ class RenderHandle(object):
         return RenderHandle(program, va[0], int(len(vertices) / 3))
 
 
-def draw_handles(render_handles):
-    for render_handle in render_handles:
-        with render_handle.program:
-            glBindVertexArray(render_handle.vao)
-            glDrawArrays(GL_TRIANGLES, 0, render_handle.num_elements)
+class RenderBuffer(object):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+        print('generating self')
+
+        # Create / Bind target framebuffer
+        self.fb = glGenFramebuffers(1)[0]
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fb)
+
+        # Color attachment
+        self.color_rb = glGenRenderbuffers(1)[0]
+        glBindRenderbuffer(
+                GL_RENDERBUFFER, self.color_rb)
+        glRenderbufferStorage(
+                GL_RENDERBUFFER, GL_RGBA8, width, height)
+        glFramebufferRenderbuffer(
+                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
+                self.color_rb)
+
+        # Depth attachment
+        self.depth_rb = glGenRenderbuffers(1)[0]
+        glBindRenderbuffer(
+                GL_RENDERBUFFER, self.depth_rb)
+        glRenderbufferStorage(
+                GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height)
+        glFramebufferRenderbuffer(
+                GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
+                self.depth_rb)
+
+        # We cool?
+        status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+        assert status == GL_FRAMEBUFFER_COMPLETE
+
+        # We cool.
+        self.we_cool = True
+
+        # Bind default framebuffer.
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
 
-def render_universe(universe, eye):
-    universe.setup_rift_persp(eye, 0.1, 1000)
-    draw_handles(universe.get_render_handles())
+    def __enter__(self):
+        assert self.we_cool
+        glBindFramebuffer(GL_FRAMEBUFFER, self.fb)
+        glViewport(0, 0, self.width, self.height)
+
+
+    def __exit__(self, type, value, traceback):
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
 
 # Got most of this from Beige: ================================

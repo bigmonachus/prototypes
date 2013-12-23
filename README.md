@@ -1,6 +1,6 @@
 The Larch
 =========
-Quick prototyping of VR (games | apps | "experiences") in python.
+Quick prototyping of VR (games | apps | "experiences") in Python.
 
 ![alt tag](http://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/M%C3%A9l%C3%A8ze_en_Automne.JPG/180px-M%C3%A9l%C3%A8ze_en_Automne.JPG)
 
@@ -31,7 +31,7 @@ python larch --game cube
 ```
 With the Rift:
 ```
-python larch --game cube
+python larch --game cube --ovr
 ```
 
 ### Get help:

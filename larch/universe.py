@@ -5,6 +5,7 @@ from math import tan, atan
 
 from glm import mat4x4
 
+from renderer import RenderBuffer
 
 class Agent(object):
     '''An agent acts inside a universe. It provides a list of render handles
@@ -48,6 +49,9 @@ class Universe(Agent):
     def pop(self):
         self.modelview = self.matstack.pop()
 
+
+################################################################################
+#---- OVR :
 
     def setup_rift_persp(self, eye, znear, zfar):
         if not self.use_ovr:
