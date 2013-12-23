@@ -100,8 +100,7 @@ class OVRInterface(Interface):
         if not oculus_screen:
             logger.error("Oculus screen not found.")
 
-        # Simulate fullscreen by making an undecorated window right where the
-        # screen is.
+        # Fulscreen oculus window.
         self._window = pyglet.window.Window(
                 fullscreen = True,
                 screen = oculus_screen,
@@ -111,14 +110,14 @@ class OVRInterface(Interface):
         self._setup_events()
         rb_width = 1280
         rb_height = 800
-        self.renderbuffer = renderer.RenderBuffer(rb_width, rb_height)
+        self.rendertexture = renderer.RenderTexture(rb_width, rb_height)
         self.begin()
 
         return self
 
 
     def _draw(self):
-        with self.renderbuffer:
+        with self.rendertexture:
             w, h = get_resolution()
             half = int(w/2)
             glViewport(0, 0, half, h)
@@ -135,4 +134,8 @@ class OVRInterface(Interface):
         del self.dm
         # TODO: This is a bug with duangle's ovr bindings.
         # ovr.System.Destroy()
+
+
+class PostProcessProgram(renderer.Program):
+    pass
 

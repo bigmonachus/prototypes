@@ -119,26 +119,31 @@ class RenderHandle(object):
         return RenderHandle(program, va[0], int(len(vertices) / 3))
 
 
-class RenderBuffer(object):
+class RenderTexture(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
 
-        print('generating self')
+        print('generating texture')
+
+        # Create texture (RGBA8 is the convention for Larch)
+        glActiveTexture(GL_TEXTURE0)
+        color_tex = glGenTextures(1)[0]
+        glBindTexture(GL_TEXTURE_2D, color_tex)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self.width, self.height,
+                0, GL_RGB, GL_UNSIGNED_BYTE, None)
 
         # Create / Bind target framebuffer
         self.fb = glGenFramebuffers(1)[0]
         glBindFramebuffer(GL_FRAMEBUFFER, self.fb)
 
         # Color attachment
-        self.color_rb = glGenRenderbuffers(1)[0]
-        glBindRenderbuffer(
-                GL_RENDERBUFFER, self.color_rb)
-        glRenderbufferStorage(
-                GL_RENDERBUFFER, GL_RGBA8, width, height)
-        glFramebufferRenderbuffer(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
-                self.color_rb)
+        glFramebufferTexture2D(
+                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0)
 
         # Depth attachment
         self.depth_rb = glGenRenderbuffers(1)[0]
@@ -154,21 +159,20 @@ class RenderBuffer(object):
         status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         assert status == GL_FRAMEBUFFER_COMPLETE
 
-        # We cool.
-        self.we_cool = True
+        # We cool...
 
         # Bind default framebuffer.
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
 
     def __enter__(self):
-        assert self.we_cool
         glBindFramebuffer(GL_FRAMEBUFFER, self.fb)
-        glViewport(0, 0, self.width, self.height)
+        glBindRenderbuffer(GL_RENDERBUFFER, self.depth_rb)
 
 
     def __exit__(self, type, value, traceback):
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glBindRenderbuffer(GL_RENDERBUFFER, 0)
 
 
 # Got most of this from Beige: ================================
