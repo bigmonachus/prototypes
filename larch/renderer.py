@@ -5,11 +5,11 @@ from gl import *
 import glm
 import re
 
-import logger as log
+import logger
 from options import renderer_options
 
 
-CURRENT_PROGRAM = 0
+CURRENT_PROGRAM = -1
 
 
 def draw_handles(render_handles):
@@ -74,7 +74,7 @@ class Program(object):
         self.enabled = True
         if CURRENT_PROGRAM != self.id:
             glUseProgram(self.id)
-        CURRENT_PROGRAM = self.id
+            CURRENT_PROGRAM = self.id
 
 
     def __exit__(self, type, value, traceback):
@@ -115,7 +115,36 @@ class RenderHandle(object):
                 glVertexAttribPointer(
                         attrib_locs[i], 3, GL_FLOAT, GL_FALSE, 0, 0)
                 glEnableVertexAttribArray(i)
-        import math
+        return RenderHandle(program, va[0], int(len(vertices) / 3))
+
+
+    @staticmethod
+    def from_triangles_and_texcoords(program, vertices, texcoords):
+        assert len(vertices) % 3 == 0
+        has_texcoords = int(len(texcoords) / 2) == int(len(vertices) / 3)
+        if not has_texcoords:
+            print('warning! no texcoords')
+            print(len(texcoords), len(vertices))
+
+        va = glGenVertexArrays(1)
+        vbos =  glGenBuffers(2)
+
+        attrib_locs = [
+                glGetAttribLocation(program.id, "in_pos"),
+                glGetAttribLocation(program.id, "in_texcoord")
+                ]
+
+        glBindVertexArray(va[0])
+        for i in (0, 1):
+            assert attrib_locs[i] >= 0
+            glBindBuffer(
+                    GL_ARRAY_BUFFER, vbos[i])
+            glBufferData(
+                    GL_ARRAY_BUFFER, GLfloat,
+                    (vertices, texcoords)[i], GL_STATIC_DRAW)
+            glVertexAttribPointer(
+                    attrib_locs[i], (3, 2)[i], GL_FLOAT, GL_FALSE, 0, 0)
+            glEnableVertexAttribArray(i)
         return RenderHandle(program, va[0], int(len(vertices) / 3))
 
 
@@ -124,18 +153,18 @@ class RenderTexture(object):
         self.width = width
         self.height = height
 
-        print('generating texture')
+        logger.log('Generating RenderTexture')
 
         # Create texture (RGBA8 is the convention for Larch)
         glActiveTexture(GL_TEXTURE0)
-        color_tex = glGenTextures(1)[0]
-        glBindTexture(GL_TEXTURE_2D, color_tex)
+        self.color_tex = glGenTextures(1)[0]
+        glBindTexture(GL_TEXTURE_2D, self.color_tex)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, self.width, self.height,
-                0, GL_RGB, GL_UNSIGNED_BYTE, None)
+                0, GL_RGBA, GL_UNSIGNED_BYTE, None)
 
         # Create / Bind target framebuffer
         self.fb = glGenFramebuffers(1)[0]
@@ -143,7 +172,8 @@ class RenderTexture(object):
 
         # Color attachment
         glFramebufferTexture2D(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_tex, 0)
+                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                self.color_tex, 0)
 
         # Depth attachment
         self.depth_rb = glGenRenderbuffers(1)[0]
@@ -185,8 +215,8 @@ def print_shader_log(shader, name):
     }[glGetShaderiv(shader, GL_SHADER_TYPE)]
 
     judgement,logfunc = {
-        GL_TRUE : ('succeeded',log.log),
-        GL_FALSE : ('FAILED',log.nonfatal_error)
+        GL_TRUE : ('succeeded',logger.log),
+        GL_FALSE : ('FAILED',logger.nonfatal_error)
     }[glGetShaderiv(shader, GL_COMPILE_STATUS)]
 
     logfunc('Compilation of {0} for {1} {2}:'.format(
@@ -198,8 +228,8 @@ def print_shader_log(shader, name):
 
 def print_program_log(program, name):
     judgement,logfunc = {
-        GL_TRUE : ('succeeded',log.log),
-        GL_FALSE : ('FAILED',log.error)
+        GL_TRUE : ('succeeded',logger.log),
+        GL_FALSE : ('FAILED',logger.error)
     }[glGetProgramiv(program, GL_LINK_STATUS)]
 
     logfunc('Compilation of program for {0} {1}:'.format(

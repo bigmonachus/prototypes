@@ -49,6 +49,11 @@ class Universe(Agent):
         self.modelview = self.matstack.pop()
 
 
+    def render_prelude(self):
+        """Setup opengl state for this universe"""
+        pass
+
+
 ################################################################################
 #---- OVR :
 

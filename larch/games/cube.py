@@ -27,7 +27,9 @@ class HappyCube(primitivelib.Cube):
 
     def tick(self, dt):
         self.cumtime += dt
-        self.rotation = (self.rotation[0], self.rotation[1] + self.rot_vel*2*3.14*dt)
+        self.rotation = (
+                self.rotation[0],
+                self.rotation[1] + self.rot_vel*2*3.14*dt)
         self.translation = (
                 self.translation[0],
                 -5 + 9 * abs(sin(2 * self.cumtime)),
@@ -46,8 +48,12 @@ class MyUniverse(Universe):
 
     def get_render_handles(self):
         # get_render_handles is implemented for all primitives in primitivelib
+        self.render_prelude()
         return self.cube.get_render_handles()
 
+
+    def render_prelude(self):
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
     def tick(self, dt):
         self.cube.tick(dt)

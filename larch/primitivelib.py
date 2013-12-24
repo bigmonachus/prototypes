@@ -113,11 +113,10 @@ class Cube(Primitive):
         self.render_handle = RenderHandle.from_triangles(PROGRAM, vertices, colors)
 
 
-
-
 class PrimitiveProgram(Program):
     def __init__(self):
-        super(PrimitiveProgram, self).__init__(glCreateProgram(), 'primitive_program')
+        super(PrimitiveProgram, self).__init__(
+                glCreateProgram(), 'primitive_program')
         rotation_src = '''
         mat4 rotation_matrix(vec3 p_axis, float angle)
         {
