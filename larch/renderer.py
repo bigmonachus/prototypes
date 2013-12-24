@@ -34,15 +34,15 @@ def create_shader(src, gl_type, name):
 
 
 class Program(object):
-    def __init__(self, id, name):
-        self.id = id
+    def __init__(self, idt, name):
+        self.idt = idt
         self.name = name
         self.uniforms = {}
 
     def set_uniform(self, name, thing):
         """Currently doesn't support int uniforms"""
         if name not in self.uniforms:
-            loc = glGetUniformLocation(self.id, name)
+            loc = glGetUniformLocation(self.idt, name)
             assert loc >= 0
             self.uniforms[name] = loc
         else:
@@ -59,25 +59,24 @@ class Program(object):
 
 
     def attach_shader(self, shader):
-        glAttachShader(self.id, shader)
+        glAttachShader(self.idt, shader)
 
 
     def link(self):
-        glLinkProgram(self.id)
+        glLinkProgram(self.idt)
         if renderer_options.validate_programs:
-            glValidateProgram(self.id)
-        print_program_log(self.id, self.name)
+            glValidateProgram(self.idt)
+        print_program_log(self.idt, self.name)
 
 
     def __enter__(self):
         global CURRENT_PROGRAM
-        self.enabled = True
-        if CURRENT_PROGRAM != self.id:
-            glUseProgram(self.id)
-            CURRENT_PROGRAM = self.id
+        if CURRENT_PROGRAM != self.idt:
+            glUseProgram(self.idt)
+            CURRENT_PROGRAM = self.idt
 
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, t, value, traceback):
         pass
 
 
@@ -100,8 +99,8 @@ class RenderHandle(object):
         vbos =  glGenBuffers(2)
 
         attrib_locs = [
-                glGetAttribLocation(program.id, "in_pos"),
-                glGetAttribLocation(program.id, "in_color")
+                glGetAttribLocation(program.idt, "in_pos"),
+                glGetAttribLocation(program.idt, "in_color")
                 ]
 
         glBindVertexArray(va[0])
@@ -130,8 +129,8 @@ class RenderHandle(object):
         vbos =  glGenBuffers(2)
 
         attrib_locs = [
-                glGetAttribLocation(program.id, "in_pos"),
-                glGetAttribLocation(program.id, "in_texcoord")
+                glGetAttribLocation(program.idt, "in_pos"),
+                glGetAttribLocation(program.idt, "in_texcoord")
                 ]
 
         glBindVertexArray(va[0])
@@ -200,7 +199,7 @@ class RenderTexture(object):
         glBindRenderbuffer(GL_RENDERBUFFER, self.depth_rb)
 
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, t, value, traceback):
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glBindRenderbuffer(GL_RENDERBUFFER, 0)
 
@@ -214,7 +213,7 @@ def print_shader_log(shader, name):
         GL_GEOMETRY_SHADER : 'geometry shader',
     }[glGetShaderiv(shader, GL_SHADER_TYPE)]
 
-    judgement,logfunc = {
+    judgement, logfunc = {
         GL_TRUE : ('succeeded',logger.log),
         GL_FALSE : ('FAILED',logger.nonfatal_error)
     }[glGetShaderiv(shader, GL_COMPILE_STATUS)]
@@ -227,7 +226,7 @@ def print_shader_log(shader, name):
     map_source_to_log(source, msglog, logfunc)
 
 def print_program_log(program, name):
-    judgement,logfunc = {
+    judgement, logfunc = {
         GL_TRUE : ('succeeded',logger.log),
         GL_FALSE : ('FAILED',logger.error)
     }[glGetProgramiv(program, GL_LINK_STATUS)]
@@ -256,21 +255,21 @@ def parse_lineloc1(line):
     m = re_lineno.match(line)
     if not m:
         return None
-    return int(m.group(1)),int(m.group(2))-1,int(m.group(3))-1
+    return int(m.group(1)), int(m.group(2))-1, int(m.group(3))-1
 
 def parse_lineloc2(line):
     # ubuntu intel style
     m = re_lineno2.match(line)
     if not m:
         return None
-    return int(m.group(1)),int(m.group(2))-1,0
+    return int(m.group(1)), int(m.group(2))-1, 0
 
 def parse_lineloc3(line):
     # ubuntu nvidia style
     m = re_lineno3.match(line)
     if not m:
         return None
-    return int(m.group(1)),int(m.group(2))-1,0
+    return int(m.group(1)), int(m.group(2))-1, 0
 
 def parse_include(line):
     m = re_include.match(line)
@@ -296,11 +295,11 @@ def map_source_to_log(source, msglog, logfunc):
             if location:
                 break
         if location:
-            xno,lidx,chidx = location
+            _, lidx, chidx = location
             if linecount < MAX_NOISE:
                 logfunc("")
                 # print a bit of context
-                for i in range(lidx-LOG_CONTEXT_PRE,lidx+LOG_CONTEXT_POST+1):
+                for i in range(lidx-LOG_CONTEXT_PRE, lidx+LOG_CONTEXT_POST+1):
                     if (i < 0) or (i >= linelen):
                         continue
                     prefix = '! ' if i == lidx else '| '

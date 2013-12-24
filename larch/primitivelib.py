@@ -28,8 +28,8 @@ def init_gl(with_ovr):
 class Primitive(Agent):
     def __init__(self):
         super(Primitive, self).__init__()
-        self.rotation = ((0,1,0), 0.0)
-        self.translation = (0,0,0)
+        self.rotation = ((0, 1, 0), 0.0)
+        self.translation = (0, 0, 0)
         self.render_handle = None
 
         global PROGRAM
@@ -46,34 +46,34 @@ class Primitive(Agent):
 
 class Cube(Primitive):
     def __init__(self):
-        super(Cube,self).__init__()
-        self.rotation = ((0,1,0), 0.0)
-        self.translation = (0,0,0)
+        super(Cube, self).__init__()
+        self.rotation = ((0, 1, 0), 0.0)
+        self.translation = (0, 0, 0)
         self._build_rhandle()
 
 
     def _build_rhandle(self):
         u = 1.0
 
-        # Repeating vertices because too lazy right now to render indexed arrays.
+        # Repeating vertices because too lazy to render indexed arrays.
         vertices = [
                 -u , -u  ,u,   # 1
                 -u , u ,u,     # 2
                 u  , -u  ,u,   # 3
 
                 u  , -u  ,u,   # 3
-                -u , u ,u,     # 2
+                -u , u , u,     # 2
                 u  , u  ,u,    # 4
 
-                u  , -u  ,u,   # 3
-                u  , u  ,u,    # 4
-                u  , -u  ,-u,  # 6
+                u  , -u  , u,   # 3
+                u  , u  , u,    # 4
+                u  , -u  , -u,  # 6
 
-                u  , -u  ,-u,  # 6
-                u  , u  ,u,    # 4
-                u  , u  ,-u,   # 5
+                u  , -u  , -u,  # 6
+                u  , u  , u,    # 4
+                u  , u  , -u,   # 5
 
-                u  , u  ,-u,   # 5
+                u  , u  , -u,   # 5
                 -u  , u, -u,   # 8
                 u  , -u  ,-u,  # 6
 
@@ -107,10 +107,11 @@ class Cube(Primitive):
                 ]
 
         colors = [item for sublist in
-                [[0.5 , 0.1 , 0.5] for n in xrange(36)]
+                [[0.5 , 0.1 , 0.5] for _ in xrange(36)]
                 for item in sublist]
 
-        self.render_handle = RenderHandle.from_triangles(PROGRAM, vertices, colors)
+        self.render_handle = RenderHandle.from_triangles(
+                PROGRAM, vertices, colors)
 
 
 class PrimitiveProgram(Program):
@@ -126,13 +127,13 @@ class PrimitiveProgram(Program):
             float oc = 1.0 - c;
 
             return mat4(
-            oc * axis.x * axis.x + c          , oc * axis.x * axis.y - axis.z * s ,
+            oc * axis.x * axis.x + c       , oc * axis.x * axis.y - axis.z * s ,
                 oc * axis.z * axis.x + axis.y * s , 0.0   ,
-            oc * axis.x * axis.y + axis.z * s , oc * axis.y * axis.y + c          ,
+            oc * axis.x * axis.y + axis.z * s , oc * axis.y * axis.y + c      ,
                 oc * axis.y * axis.z - axis.x * s , 0.0   ,
-            oc * axis.z * axis.x - axis.y * s , oc * axis.y * axis.z + axis.x * s ,
+            oc * axis.z * axis.x - axis.y * s,oc * axis.y * axis.z + axis.x * s,
                 oc * axis.z * axis.z + c          , 0.0   ,
-            0.0                               , 0.0                               ,
+            0.0                               , 0.0                            ,
                 0.0                               , 1.0);
         }
         '''
@@ -173,7 +174,8 @@ class PrimitiveProgram(Program):
                 0.0, 0.0, 1.0, 0.0,
                 translation.x, translation.y, translation.z, 1.0);
 
-            mat4 view = translate * rotation_matrix(transform.axis, transform.angle);
+            mat4 view = translate *
+                rotation_matrix(transform.axis, transform.angle);
 
             vec4 view_vec = vt * view * vec4(in_pos, 1.0);
 
@@ -191,15 +193,17 @@ class PrimitiveProgram(Program):
             out_color = vec4(vs_color,1.0);
         }
         '''
-        self.attach_shader(create_shader(rotation_src, GL_VERTEX_SHADER, 'rotation'))
-        self.attach_shader(create_shader(vertex_src, GL_VERTEX_SHADER, 'vertex'))
-        self.attach_shader(create_shader(frag_src, GL_FRAGMENT_SHADER, 'frag'))
+        self.attach_shader(
+                create_shader(rotation_src, GL_VERTEX_SHADER, 'rotation'))
+        self.attach_shader(
+                create_shader(vertex_src, GL_VERTEX_SHADER, 'vertex'))
+        self.attach_shader(
+                create_shader(frag_src, GL_FRAGMENT_SHADER, 'frag'))
         self.link()
         self.setup_persp(None)
 
     def setup_persp(self, matrix):
         if matrix == None:
-            global ASPECT_RATIO
             persp_mat = mat4x4.perspective(75.0, ASPECT_RATIO, 0.001, 100)
         else:
             persp_mat = matrix
