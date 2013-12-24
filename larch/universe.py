@@ -26,17 +26,24 @@ class Agent(object):
 
 
 class Universe(Agent):
-    """The difference between a universe and an agent is subtle. A universe has more
-    responsibilities.
-    A universe also handles head movement and decides which agent's render handles
-    to return.
+    """The difference between a universe and an agent is subtle.
+    A universe has more responsibilities.
+    A universe also takes care of head movement and decides which agent render
+    handles to return.
     """
     def __init__(self):
         self.modelview = mat4x4.identity()
         self.matstack = []
         self.head = ()
+        self.devinfo = None
+        self.program = None
         self.use_ovr = False
-        self.program = None  # Set this up when sub-classing
+
+
+    def enable_ovr(self, devinfo):
+        """HMDInfo Needed for self.setup_rift_persp"""
+        self.devinfo = devinfo
+        self.use_ovr = True
 
 
     def push(self, mat):
@@ -55,8 +62,8 @@ class Universe(Agent):
 
 
 ################################################################################
-#---- OVR :
-
+# OVR
+################################################################################
     def setup_rift_persp(self, eye, znear, zfar):
         if not self.use_ovr:
             return
@@ -66,14 +73,14 @@ class Universe(Agent):
         eye_to_screen = self.devinfo.EyeToScreenDistance
         v_fov = 2 * atan(v_size / (2 * eye_to_screen))
 
-        self.rift_persp = mat4x4.zero()
+        rift_persp = mat4x4.zero()
 
         t = 1 / (tan(v_fov/2))
-        self.rift_persp.i00 = t / rift_ar
-        self.rift_persp.i11 = t
-        self.rift_persp.i22 = zfar / (znear - zfar)
-        self.rift_persp.i32 = (zfar + znear) / (znear - zfar)
-        self.rift_persp.i23 = -1
+        rift_persp.i00 = t / rift_ar
+        rift_persp.i11 = t
+        rift_persp.i22 = zfar / (znear - zfar)
+        rift_persp.i32 = (zfar + znear) / (znear - zfar)
+        rift_persp.i23 = -1
 
         lens_separation = self.devinfo.LensSeparationDistance
         view_center = self.devinfo.HScreenSize / 4
@@ -84,11 +91,11 @@ class Universe(Agent):
 
         if eye == 'right':
             translation_mat = mat4x4.translation_fff(-offset, 0, 0)
-            self.rift_persp = translation_mat.mul_mat4(self.rift_persp)
+            rift_persp = translation_mat.mul_mat4(rift_persp)
             self.program.set_uniform('eye_ipd', (-ipd/2,))
         elif eye == 'left':
             translation_mat = mat4x4.translation_fff(offset, 0, 0)
-            self.rift_persp = translation_mat.mul_mat4(self.rift_persp)
+            rift_persp = translation_mat.mul_mat4(rift_persp)
             self.program.set_uniform('eye_ipd', (ipd/2,))
 
-        self.program.setup_persp(self.rift_persp)
+        self.program.setup_persp(rift_persp)

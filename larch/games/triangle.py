@@ -2,8 +2,7 @@ from __future__ import (print_function, division, absolute_import)
 
 from gl import *
 
-from interface import Interface
-from renderer import Program, RenderHandle, create_shader, draw_handles
+from renderer import Program, RenderHandle, create_shader
 from universe import Agent, Universe
 
 def make_simple_program():
@@ -79,7 +78,7 @@ class SimpleUniverse(Universe):
     def get_render_handles(self):
         return self.triangle.get_render_handles()
 
-    def tick(self,dt):
+    def tick(self, dt):
         self.triangle.tick(dt)
 
 

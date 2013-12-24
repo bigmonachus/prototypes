@@ -1,1 +1,1 @@
-PYTHONPATH=.:./larch:~/pypyenv pylint larch --disable=missing-docstring,invalid-name,undefined-variable,global-statement,unused-wildcard-import
+PYTHONPATH=.:./larch pylint larch --disable=missing-docstring,invalid-name,undefined-variable,global-statement,unused-wildcard-import,bad-builtin,too-many-instance-attributes,too-many-locals,too-few-public-methods

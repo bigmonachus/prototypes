@@ -15,7 +15,7 @@ from gl import (glClear, glViewport, glCreateProgram, glPolygonMode,
 
 try:
     import ovr
-except Exception:
+except ImportError:
     print('No support for ovr.')
 
 import logger
@@ -25,6 +25,9 @@ def get_resolution():
     return 1280, 800
 
 class Interface(object):
+    """Abstrace Interface class.
+    Subclass must define in begin():
+         self.universe """
     def __init__(self):
         self.gl_config = pyglet.gl.Config(
                 major_version = 3,
@@ -34,6 +37,8 @@ class Interface(object):
                 red_size = 8,
                 green_size = 8,
                 blue_size = 8)
+        self.universe = None
+        self._window = None
 
     def __enter__(self):
         w, h = get_resolution()
@@ -57,7 +62,6 @@ class Interface(object):
 
     def begin(self):
         'Do setup after loading the window and setting up a GL context.'
-        self.program = None  # Set this to a default, perspective projected.
         pyglet.clock.schedule_interval(self.tick, 0.001)
 
 
@@ -69,11 +73,22 @@ class Interface(object):
         pyglet.app.run()
 
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, t, value, traceback):
         pass
 
 
 class OVRInterface(Interface):
+    def __init__(self):
+        super(OVRInterface, self).__init__()
+        self._devs = None
+        self.devices = []
+        self.dm = None
+        self.rendertexture = None
+        self.screen_triangle_rh = None
+        self.pp_program = None
+        self.devinfo = None
+        self.device = None
+
     def __enter__(self):
         ovr.System.Init(ovr.Log.ConfigureDefaultLog(ovr.LogMask_All))
         self.dm = ovr.DeviceManager.Create()
@@ -147,7 +162,7 @@ class OVRInterface(Interface):
         renderer.render_universe(self.universe, 'right')
 
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, t, value, traceback):
         logger.log("OVRInterface exited succesfully.")
         del self.device
         del self.devices
@@ -194,25 +209,25 @@ class OVRInterface(Interface):
 
 
     def _cook_screen_triangle(self, program):
-         vertices = [
-                 1.0 , -1.0  ,0.0,
-                 -1.0 , -1.0 ,0.0,
-                 1.0  , 1.0  ,0.0,
-                 -1.0 , -1.0  ,0.0,
-                 -1.0 , 1.0 ,0.0,
-                 1.0  , 1.0  ,0.0,
-                 ]
-         texcoords = [
-                 1.0 , 0.0,
-                 0.0 , 0.0,
-                 1.0 , 1.0,
-                 0.0 , 0.0,
-                 0.0 , 1.0,
-                 1.0 , 1.0,
-                 ]
+        vertices = [
+                1.0 , -1.0  ,0.0,
+                -1.0 , -1.0 ,0.0,
+                1.0  , 1.0  ,0.0,
+                -1.0 , -1.0  ,0.0,
+                -1.0 , 1.0 ,0.0,
+                1.0  , 1.0  ,0.0,
+                ]
+        texcoords = [
+                1.0 , 0.0,
+                0.0 , 0.0,
+                1.0 , 1.0,
+                0.0 , 0.0,
+                0.0 , 1.0,
+                1.0 , 1.0,
+                ]
 
-         return renderer.RenderHandle.from_triangles_and_texcoords(
-                 program, vertices, texcoords)
+        return renderer.RenderHandle.from_triangles_and_texcoords(
+                program, vertices, texcoords)
 
 
 

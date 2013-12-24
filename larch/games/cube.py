@@ -5,12 +5,11 @@ Draws a bouncing cube in perspective, desktop or vr; using a shader pipeline.
 from __future__ import (print_function, division, absolute_import)
 
 from gl import *
-from glm import mat4x4, vec3
 from math import sin
 
 import primitivelib
-from interface import Interface, OVRInterface, get_resolution
-from universe import Agent, Universe
+from interface import OVRInterface
+from universe import Universe
 
 
 USE_OVR = False
@@ -20,7 +19,7 @@ class HappyCube(primitivelib.Cube):
     def __init__(self):
         super(HappyCube, self).__init__()
         self.rot_vel = 0.5
-        self.rotation = ((0.9,0.7,-0.3), 0.0)
+        self.rotation = ((0.9, 0.7, -0.3), 0.0)
         self.translation = (0, 0, -10)
         self.cumtime = 0
 
@@ -40,7 +39,6 @@ class HappyCube(primitivelib.Cube):
 class MyUniverse(Universe):
     def __init__(self):
         super(MyUniverse, self).__init__()
-        global USE_OVR
         primitivelib.init_gl(USE_OVR)
         self.cube = HappyCube()
         self.program = primitivelib.PROGRAM
@@ -77,8 +75,7 @@ def new(interface_class):
             super(SimpleGame, self).begin()
             self.universe = MyUniverse()
             if USE_OVR:
-                self.universe.devinfo = self.devinfo
-                self.universe.use_ovr = True
+                self.universe.enable_ovr(self.devinfo)
 
     return SimpleGame
 

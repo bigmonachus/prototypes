@@ -24,7 +24,8 @@ def main():
     parser.add_argument(
             '--game',
             action='store',
-            help='Specify the game to run. List of games: {}'.format(game_names))
+            help='Specify the game to run. List of games: {}'.format(
+                game_names))
 
     parsed_args = parser.parse_args(sys.argv[1:])
 
