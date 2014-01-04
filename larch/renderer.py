@@ -133,8 +133,8 @@ class RenderHandle(object):
         vbos =  glGenBuffers(2)
 
         attrib_locs = [
-                glGetAttribLocation(program.idt, "in_pos"),
-                glGetAttribLocation(program.idt, "in_texcoord")
+                glGetAttribLocation(program.idt, 'in_pos'),
+                glGetAttribLocation(program.idt, 'in_texcoord')
                 ]
 
         glBindVertexArray(va[0])

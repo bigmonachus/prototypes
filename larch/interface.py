@@ -156,7 +156,6 @@ class OVRInterface(Interface):
             renderer.render_universe(self.universe, 'right')
 
         # Render screen quad.
-        print(self.devinfo.VScreenCenter)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glActiveTexture(GL_TEXTURE0)
         glViewport(0, 0, w, h)
@@ -201,10 +200,31 @@ class OVRInterface(Interface):
         uniform vec2 scale_in;
         uniform vec4 warp_param;
 
+        vec2 hmd_warp(vec2 tc)
+        {
+            vec2 theta = (tc - lens_center) * scale_in;
+            float rsq = theta.x * theta.x + theta.y * theta.y;
+            vec2 rvec = theta * (warp_param.x + warp_param.y * rsq +
+                                 warp_param.z * rsq * rsq +
+                                 warp_param.w * rsq * rsq * rsq);
+            return lens_center + scale * rvec;
+        }
+
         void main(void)
         {
-            vec4 color = texture(frame, vs_texcoord);
-            out_color = color;
+            vec2 texcoord = hmd_warp(vs_texcoord);
+            vec4 color = texture(frame, texcoord);
+            if (!all(equal(clamp(texcoord, screen_center - vec2(0.25, 0.5),
+                                           screen_center + vec2(0.25, 0.5)),
+                           texcoord)))
+            {
+                out_color = vec4(0,0,0,1);
+            }
+            else
+            {
+                out_color = color;
+            }
+            out_color = texture(frame, vs_texcoord);
         }
         '''
         p = renderer.Program(glCreateProgram(), 'pp_program')
@@ -213,6 +233,20 @@ class OVRInterface(Interface):
         p.attach_shader(renderer.create_shader(
             frag_src, GL_FRAGMENT_SHADER, 'pp_frag'))
         p.link()
+
+        screen_center = (self.devinfo.HScreenSize / 2,
+                self.devinfo.VScreenCenter)
+
+        print(screen_center)
+
+        hmd_warp = self.devinfo.DistortionK
+        # Set up uniforms.
+        # p.set_uniform('lens_center', screen_center)
+        # p.set_uniform('scale', (1.0, 1.0))
+        # p.set_uniform('scale_in', (1.0, 1.0))
+        # p.set_uniform('warp_param', hmd_warp)
+
+
         return p
 
 
@@ -234,7 +268,6 @@ class OVRInterface(Interface):
                 0.0 , 1.0,
                 0.5 , 1.0,
                 ]
-
 
         verts_right = [
                 1.0 , -1.0  ,0.0,
