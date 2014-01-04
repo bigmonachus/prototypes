@@ -161,7 +161,7 @@ class OVRInterface(Interface):
         glViewport(0, 0, w, h)
         rh = self.screen_quads_rh
         renderer.draw_handles([rh[0]])
-        renderer.draw_handles([rh[1]])
+        #renderer.draw_handles([rh[1]])
 
 
     def __exit__(self, t, value, traceback):
@@ -195,27 +195,24 @@ class OVRInterface(Interface):
 
         uniform sampler2D frame;
         uniform vec2 lens_center;
-        uniform vec2 screen_center;
         uniform vec2 scale;
         uniform vec2 scale_in;
         uniform vec4 warp_param;
 
-        vec2 hmd_warp(vec2 tc)
-        {
-            vec2 theta = (tc - lens_center) * scale_in;
-            float rsq = theta.x * theta.x + theta.y * theta.y;
-            vec2 rvec = theta * (warp_param.x + warp_param.y * rsq +
-                                 warp_param.z * rsq * rsq +
-                                 warp_param.w * rsq * rsq * rsq);
-            return lens_center + scale * rvec;
-        }
-
         void main(void)
         {
-            vec2 texcoord = hmd_warp(vs_texcoord);
+            vec2 theta = (vs_texcoord - lens_center) * scale_in;
+            float rsq = theta.x * theta.x + theta.y * theta.y;
+            vec2 rvec = theta * (warp_param.x + 
+                                 warp_param.y * rsq +
+                                 warp_param.z * rsq * rsq +
+                                 warp_param.w * rsq * rsq * rsq);
+            vec2 texcoord = lens_center + scale * rvec;
+            
+
             vec4 color = texture(frame, texcoord);
-            if (!all(equal(clamp(texcoord, screen_center - vec2(0.25, 0.5),
-                                           screen_center + vec2(0.25, 0.5)),
+            if (!all(equal(clamp(texcoord, lens_center - vec2(0.25, 0.5),
+                                           lens_center + vec2(0.25, 0.5)),
                            texcoord)))
             {
                 out_color = vec4(0,0,0,1);
@@ -224,7 +221,6 @@ class OVRInterface(Interface):
             {
                 out_color = color;
             }
-            out_color = texture(frame, vs_texcoord);
         }
         '''
         p = renderer.Program(glCreateProgram(), 'pp_program')
@@ -233,18 +229,17 @@ class OVRInterface(Interface):
         p.attach_shader(renderer.create_shader(
             frag_src, GL_FRAGMENT_SHADER, 'pp_frag'))
         p.link()
-
-        screen_center = (self.devinfo.HScreenSize / 2,
-                self.devinfo.VScreenCenter)
-
-        print(screen_center)
+        
+        lc_s = 1 - (2 * self.devinfo.LensSeparationDistance / 
+                    self.devinfo.HScreenSize)
+        lens_center = (1280 / 800 * lc_s, 0.5)
 
         hmd_warp = self.devinfo.DistortionK
         # Set up uniforms.
-        # p.set_uniform('lens_center', screen_center)
-        # p.set_uniform('scale', (1.0, 1.0))
-        # p.set_uniform('scale_in', (1.0, 1.0))
-        # p.set_uniform('warp_param', hmd_warp)
+        p.set_uniform('lens_center', lens_center)
+        p.set_uniform('scale_in', (4.0, (2)/(1280 / 800)))
+        p.set_uniform('scale', (0.25, 0.5*(1280 / 800)))
+        p.set_uniform('warp_param', hmd_warp)
 
 
         return p

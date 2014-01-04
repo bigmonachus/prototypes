@@ -57,6 +57,9 @@ class Program(object):
         if len(thing) == 3:
             with self:
                 glUniform3fv(loc, thing)
+        if len(thing) == 2:
+            with self:
+                glUniform2fv(loc, thing)
         if len(thing) == 1:
             with self:
                 glUniform1fv(loc, thing)
