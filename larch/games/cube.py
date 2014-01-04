@@ -51,6 +51,7 @@ class MyUniverse(Universe):
 
 
     def render_prelude(self):
+        glClearColor(1, 1, 1, 1)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
     def tick(self, dt):

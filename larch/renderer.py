@@ -39,6 +39,7 @@ class Program(object):
         self.name = name
         self.uniforms = {}
 
+
     def set_uniform(self, name, thing):
         """Currently doesn't support int uniforms"""
         if name not in self.uniforms:
@@ -50,6 +51,9 @@ class Program(object):
         if type(thing) is glm.types.mat4x4:
             with self:
                 glUniformMatrix4fv(loc, False, thing.to_c_array())
+        if len(thing) == 4:
+            with self:
+                glUniform4fv(loc, thing)
         if len(thing) == 3:
             with self:
                 glUniform3fv(loc, thing)
@@ -224,6 +228,7 @@ def print_shader_log(shader, name):
     source = glGetShaderSource(shader)
     msglog = glGetShaderInfoLog(shader)
     map_source_to_log(source, msglog, logfunc)
+
 
 def print_program_log(program, name):
     judgement, logfunc = {

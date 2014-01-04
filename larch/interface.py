@@ -21,8 +21,10 @@ except ImportError:
 import logger
 import renderer
 
+
 def get_resolution():
     return 1280, 800
+
 
 class Interface(object):
     """Abstrace Interface class.
@@ -39,6 +41,7 @@ class Interface(object):
                 blue_size = 8)
         self.universe = None
         self._window = None
+
 
     def __enter__(self):
         w, h = get_resolution()
@@ -84,10 +87,11 @@ class OVRInterface(Interface):
         self.devices = []
         self.dm = None
         self.rendertexture = None
-        self.screen_triangle_rh = None
+        self.screen_quads_rh = None
         self.pp_program = None
         self.devinfo = None
         self.device = None
+
 
     def __enter__(self):
         ovr.System.Init(ovr.Log.ConfigureDefaultLog(ovr.LogMask_All))
@@ -134,7 +138,7 @@ class OVRInterface(Interface):
         self.rendertexture = renderer.RenderTexture(rb_width, rb_height)
 
         self.pp_program = self._build_postprocess_program()
-        self.screen_triangle_rh = self._cook_screen_triangle(self.pp_program)
+        self.screen_quads_rh = self._cook_screen_quads(self.pp_program)
 
         self.begin()
 
@@ -151,15 +155,14 @@ class OVRInterface(Interface):
             glViewport(half, 0, half, h)
             renderer.render_universe(self.universe, 'right')
 
-        # Test: do this with our program.
+        # Render screen quad.
+        print(self.devinfo.VScreenCenter)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glActiveTexture(GL_TEXTURE0)
         glViewport(0, 0, w, h)
-        rh = self.screen_triangle_rh
-        renderer.draw_handles([self.screen_triangle_rh])
-        # Test, overdraw what I want to see
-        glViewport(half, 0, half, h)
-        renderer.render_universe(self.universe, 'right')
+        rh = self.screen_quads_rh
+        renderer.draw_handles([rh[0]])
+        renderer.draw_handles([rh[1]])
 
 
     def __exit__(self, t, value, traceback):
@@ -192,6 +195,11 @@ class OVRInterface(Interface):
         out vec4 out_color;
 
         uniform sampler2D frame;
+        uniform vec2 lens_center;
+        uniform vec2 screen_center;
+        uniform vec2 scale;
+        uniform vec2 scale_in;
+        uniform vec4 warp_param;
 
         void main(void)
         {
@@ -208,26 +216,47 @@ class OVRInterface(Interface):
         return p
 
 
-    def _cook_screen_triangle(self, program):
-        vertices = [
-                1.0 , -1.0  ,0.0,
+    def _cook_screen_quads(self, program):
+        verts_left = [
+                0.0 , -1.0  ,0.0,
                 -1.0 , -1.0 ,0.0,
-                1.0  , 1.0  ,0.0,
+                0.0  , 1.0  ,0.0,
                 -1.0 , -1.0  ,0.0,
                 -1.0 , 1.0 ,0.0,
-                1.0  , 1.0  ,0.0,
+                0.0  , 1.0  ,0.0,
                 ]
-        texcoords = [
-                1.0 , 0.0,
+
+        texcoords_left = [
+                0.5 , 0.0,
                 0.0 , 0.0,
-                1.0 , 1.0,
+                0.5 , 1.0,
                 0.0 , 0.0,
                 0.0 , 1.0,
+                0.5 , 1.0,
+                ]
+
+
+        verts_right = [
+                1.0 , -1.0  ,0.0,
+                0.0 , -1.0 ,0.0,
+                1.0  , 1.0  ,0.0,
+                0.0 , -1.0  ,0.0,
+                0.0 , 1.0 ,0.0,
+                1.0  , 1.0  ,0.0,
+                ]
+
+        texcoords_right = [
+                1.0 , 0.0,
+                0.5 , 0.0,
+                1.0 , 1.0,
+                0.5 , 0.0,
+                0.5 , 1.0,
                 1.0 , 1.0,
                 ]
 
-        return renderer.RenderHandle.from_triangles_and_texcoords(
-                program, vertices, texcoords)
-
-
+        return [renderer.RenderHandle.from_triangles_and_texcoords(
+                    program, verts_left, texcoords_left),
+                renderer.RenderHandle.from_triangles_and_texcoords(
+                    program, verts_right, texcoords_right)
+                ]
 
