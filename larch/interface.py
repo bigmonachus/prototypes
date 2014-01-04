@@ -146,9 +146,10 @@ class OVRInterface(Interface):
 
 
     def _draw(self):
+        w, h = get_resolution()
+        aspect = w / h
         with self.rendertexture:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            w, h = get_resolution()
             half = int(w/2)
             glViewport(0, 0, half, h)
             renderer.render_universe(self.universe, 'left')
@@ -160,8 +161,27 @@ class OVRInterface(Interface):
         glActiveTexture(GL_TEXTURE0)
         glViewport(0, 0, w, h)
         rh = self.screen_quads_rh
+        
+        janky_f = 2
+        
+        lc_s = janky_f * (1 - (2 * self.devinfo.LensSeparationDistance / 
+                    self.devinfo.HScreenSize))
+        lens_center = (lc_s, 0.5)
+
+
+        hmd_warp = self.devinfo.DistortionK
+        # Set up uniforms.
+        self.pp_program.set_uniform('lens_center', lens_center)
+        self.pp_program.set_uniform('scale_in', (4, 2/aspect))
+        self.pp_program.set_uniform('scale', (0.25, 0.5*aspect))
+        self.pp_program.set_uniform('warp_param', hmd_warp)
         renderer.draw_handles([rh[0]])
-        #renderer.draw_handles([rh[1]])
+        print('left center: {}'.format(lens_center))
+        lens_center = (1 - lens_center[0], lens_center[1])
+        print('right center: {}'.format(lens_center))
+        self.pp_program.set_uniform('lens_center', lens_center)
+        
+        renderer.draw_handles([rh[1]])
 
 
     def __exit__(self, t, value, traceback):
@@ -230,16 +250,6 @@ class OVRInterface(Interface):
             frag_src, GL_FRAGMENT_SHADER, 'pp_frag'))
         p.link()
         
-        lc_s = 1 - (2 * self.devinfo.LensSeparationDistance / 
-                    self.devinfo.HScreenSize)
-        lens_center = (1280 / 800 * lc_s, 0.5)
-
-        hmd_warp = self.devinfo.DistortionK
-        # Set up uniforms.
-        p.set_uniform('lens_center', lens_center)
-        p.set_uniform('scale_in', (4.0, (2)/(1280 / 800)))
-        p.set_uniform('scale', (0.25, 0.5*(1280 / 800)))
-        p.set_uniform('warp_param', hmd_warp)
 
 
         return p

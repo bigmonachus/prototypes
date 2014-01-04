@@ -21,8 +21,6 @@ def init_gl(with_ovr):
     else:
         ASPECT_RATIO = int(w/2) / h
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-    glEnable(GL_CULL_FACE)
-    glCullFace(GL_FRONT)  # Defined cube with ccw faces...
 
 
 class Primitive(Agent):

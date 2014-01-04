@@ -18,9 +18,9 @@ USE_OVR = False
 class HappyCube(primitivelib.Cube):
     def __init__(self):
         super(HappyCube, self).__init__()
-        self.rot_vel = 0.5
-        self.rotation = ((0.9, 0.7, -0.3), 0.0)
-        self.translation = (0, 0, -10)
+        self.rot_vel = 0.1
+        self.rotation = ((0, 1, 0), 0.0)
+        self.translation = (0, 0, -3)
         self.cumtime = 0
 
 
@@ -31,7 +31,7 @@ class HappyCube(primitivelib.Cube):
                 self.rotation[1] + self.rot_vel*2*3.14*dt)
         self.translation = (
                 self.translation[0],
-                -5 + 9 * abs(sin(2 * self.cumtime)),
+                0, #-5 + 9 * abs(sin(2 * self.cumtime)),
                 self.translation[2],
                 )
 
