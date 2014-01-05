@@ -46,6 +46,7 @@ class Interface(object):
                 blue_size = 8)
         self.universe = None
         self._window = None
+        self.devinfo = None  # Says that this interface does not support OVR
 
 
     def __enter__(self):
@@ -243,7 +244,7 @@ class OVRInterface(Interface):
                                            lens_center + vec2(0.25, 0.5)),
                            texcoord)))
             {
-                out_color = vec4(0,0,0,1);
+                out_color = vec4(0,1,0,1);
             }
             else
             {

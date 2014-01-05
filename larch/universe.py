@@ -4,6 +4,7 @@ from __future__ import (print_function, division, absolute_import)
 from math import tan, atan
 
 from glm import mat4x4
+from interface import OVR_FRAME_SCALE
 
 
 class Agent(object):
@@ -61,17 +62,16 @@ class Universe(Agent):
         pass
 
 
-################################################################################
-# OVR
-################################################################################
     def setup_rift_persp(self, eye, znear, zfar):
+        '''self.program must have eye_ipd
+        '''
         if not self.use_ovr:
             return
         rift_ar = self.devinfo.HResolution / (2 * self.devinfo.VResolution)
 
         v_size = self.devinfo.VScreenSize
         eye_to_screen = self.devinfo.EyeToScreenDistance
-        v_fov = 2 * atan(v_size / (2 * eye_to_screen))
+        v_fov = 2 * atan(OVR_FRAME_SCALE * v_size / (2 * eye_to_screen))
 
         rift_persp = mat4x4.zero()
 
@@ -98,4 +98,4 @@ class Universe(Agent):
             rift_persp = translation_mat.mul_mat4(rift_persp)
             self.program.set_uniform('eye_ipd', (ipd/2,))
 
-        self.program.setup_persp(rift_persp)
+        self.program.set_uniform('persp', rift_persp)

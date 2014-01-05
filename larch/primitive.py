@@ -117,6 +117,7 @@ class PrimitiveUniverse(Universe):
         '''devinfo is an instance of HMDInfo or None. OVR setup
         is decided based on that.
         '''
+        super(PrimitiveUniverse, self).__init__()
         global PROGRAM
         use_ovr = not devinfo is None
 
@@ -239,15 +240,6 @@ class PrimitiveProgram(Program):
         self.attach_shader(
                 create_shader(frag_src, GL_FRAGMENT_SHADER, 'frag'))
         self.link()
-        self.setup_persp(None)
-        
-
-    def setup_persp(self, matrix):
-        if matrix == None:
-            persp_mat = mat4x4.perspective(75.0, ASPECT_RATIO, 0.001, 100)
-        else:
-            persp_mat = matrix
-
-        self.set_uniform('persp', persp_mat)
-
-
+        # Setup a default perspective matrix.
+        self.set_uniform('persp',
+                         mat4x4.perspective(75.0, ASPECT_RATIO, 0.001, 100))
