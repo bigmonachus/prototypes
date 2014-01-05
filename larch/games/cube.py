@@ -20,7 +20,7 @@ class HappyCube(primitivelib.Cube):
         super(HappyCube, self).__init__()
         self.rot_vel = 0.1
         self.rotation = ((0.9, 0.7, -0.3), 0.0)
-        self.translation = (0, 0, -3)
+        self.translation = (0, 0, -6)
         self.cumtime = 0
 
 

@@ -22,6 +22,11 @@ import logger
 import renderer
 
 
+OVR_FRAME_SCALE = 1.8
+
+def get_scaled_resolution():
+    return int(1280 * OVR_FRAME_SCALE), int(800 * OVR_FRAME_SCALE)
+
 def get_resolution():
     return 1280, 800
 
@@ -133,9 +138,9 @@ class OVRInterface(Interface):
                 style = pyglet.window.Window.WINDOW_STYLE_BORDERLESS)
 
         self._setup_events()
-        rb_width = 1280
-        rb_height = 800
-        self.rendertexture = renderer.RenderTexture(rb_width, rb_height)
+        w, h = get_scaled_resolution()
+        self.rendertexture = renderer.RenderTexture(w, h)
+        logger.log('Renderbuffer size: {}x{}'.format(w, h))
 
         self.pp_program = self._build_postprocess_program()
         self.screen_quads_rh = self._cook_screen_quads(self.pp_program)
@@ -146,7 +151,7 @@ class OVRInterface(Interface):
 
 
     def _draw(self):
-        w, h = get_resolution()
+        w, h = get_scaled_resolution()
         aspect = w / h
         with self.rendertexture:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -157,6 +162,7 @@ class OVRInterface(Interface):
             renderer.render_universe(self.universe, 'right')
 
         # Render screen quad.
+        w, h = get_resolution()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glActiveTexture(GL_TEXTURE0)
         glViewport(0, 0, w, h)
@@ -168,7 +174,7 @@ class OVRInterface(Interface):
 
         lens_center = (lc_s, 0.5)
         
-        dist_scale = 1
+        dist_scale = 1 / OVR_FRAME_SCALE
         hmd_warp = self.devinfo.DistortionK
         # Set up uniforms.
         self.pp_program.set_uniform('lens_center', lens_center)
@@ -177,12 +183,9 @@ class OVRInterface(Interface):
                                                (1/4)*dist_scale*aspect))
         self.pp_program.set_uniform('warp_param', hmd_warp)
         renderer.draw_handles([rh[0]])
-        print('left center: {}'.format(lens_center))
 
         lens_center = (1 - lens_center[0], lens_center[1])
   
-        print('right center: {}'.format(lens_center))
-
         self.pp_program.set_uniform('lens_center', lens_center)
          
         renderer.draw_handles([rh[1]])
