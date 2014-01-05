@@ -162,25 +162,29 @@ class OVRInterface(Interface):
         glViewport(0, 0, w, h)
         rh = self.screen_quads_rh
         
-        janky_f = 2
-        
-        lc_s = janky_f * (1 - (2 * self.devinfo.LensSeparationDistance / 
-                    self.devinfo.HScreenSize))
+        hsize = self.devinfo.HScreenSize
+        lsd = self.devinfo.LensSeparationDistance
+        lc_s = (hsize - lsd) / (2 * hsize)
+
         lens_center = (lc_s, 0.5)
-
-
+        
+        dist_scale = 1
         hmd_warp = self.devinfo.DistortionK
         # Set up uniforms.
         self.pp_program.set_uniform('lens_center', lens_center)
-        self.pp_program.set_uniform('scale_in', (4, 2/aspect))
-        self.pp_program.set_uniform('scale', (0.25, 0.5*aspect))
+        self.pp_program.set_uniform('scale_in', (4, 4/aspect))
+        self.pp_program.set_uniform('scale', (1/4 * dist_scale,
+                                               (1/4)*dist_scale*aspect))
         self.pp_program.set_uniform('warp_param', hmd_warp)
         renderer.draw_handles([rh[0]])
         print('left center: {}'.format(lens_center))
+
         lens_center = (1 - lens_center[0], lens_center[1])
+  
         print('right center: {}'.format(lens_center))
+
         self.pp_program.set_uniform('lens_center', lens_center)
-        
+         
         renderer.draw_handles([rh[1]])
 
 
@@ -217,6 +221,7 @@ class OVRInterface(Interface):
         uniform vec2 lens_center;
         uniform vec2 scale;
         uniform vec2 scale_in;
+        uniform vec2 trans_in;
         uniform vec4 warp_param;
 
         void main(void)
@@ -249,8 +254,6 @@ class OVRInterface(Interface):
         p.attach_shader(renderer.create_shader(
             frag_src, GL_FRAGMENT_SHADER, 'pp_frag'))
         p.link()
-        
-
 
         return p
 

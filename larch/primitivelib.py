@@ -105,7 +105,7 @@ class Cube(Primitive):
                 ]
 
         colors = [item for sublist in
-                [[0.5 , 0.1 , 0.5] for _ in xrange(36)]
+                  [[0.5 , 0.1 , 0.5] for _ in xrange(36)]
                 for item in sublist]
 
         self.render_handle = RenderHandle.from_triangles(
