@@ -5,11 +5,11 @@ from gl import *
 from glm import mat4x4
 
 from interface import get_resolution
-from renderer import Program, create_shader, RenderHandle
-from universe import Agent
+from render import Program, create_shader, RenderHandle
+from universe import Agent, Universe
 
 
-PROGRAM = None
+PROGRAM = None  # Lazily created when the first agent needs it.
 ASPECT_RATIO = 1.0
 
 
@@ -112,6 +112,47 @@ class Cube(Primitive):
                 PROGRAM, vertices, colors)
 
 
+class PrimitiveUniverse(Universe):
+    def __init__(self, devinfo):
+        '''devinfo is an instance of HMDInfo or None. OVR setup
+        is decided based on that.
+        '''
+        global PROGRAM
+        use_ovr = not devinfo is None
+
+        init_gl(use_ovr)
+        if PROGRAM is None:
+            PROGRAM = PrimitiveProgram()
+        self.program = PROGRAM
+        self.primitives = []
+
+        if use_ovr:
+            self.enable_ovr(devinfo)
+    
+    
+    def attach_primitive(self, p):
+        self.primitives.append(p)
+    
+    
+    def get_render_handles(self):
+        self.render_prelude()
+        rhs = []
+        for p in self.primitives:
+            rhs.extend(p.get_render_handles())
+        return rhs
+    
+
+    def tick(self, dt):
+        for p in self.primitives:
+            p.tick(dt)
+    
+    
+    def render_prelude(self):
+        Universe.render_prelude(self)
+        glClearColor(1, 1, 1, 1)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        
+
 class PrimitiveProgram(Program):
     def __init__(self):
         super(PrimitiveProgram, self).__init__(
@@ -199,6 +240,7 @@ class PrimitiveProgram(Program):
                 create_shader(frag_src, GL_FRAGMENT_SHADER, 'frag'))
         self.link()
         self.setup_persp(None)
+        
 
     def setup_persp(self, matrix):
         if matrix == None:

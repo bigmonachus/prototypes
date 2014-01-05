@@ -19,7 +19,7 @@ except ImportError:
     print('No support for ovr.')
 
 import logger
-import renderer
+import render
 
 
 OVR_FRAME_SCALE = 1.8
@@ -65,7 +65,7 @@ class Interface(object):
 
 
     def _draw(self):
-        renderer.render_universe(self.universe, 'center')
+        render.render_universe(self.universe, 'center')
 
 
     def begin(self):
@@ -139,7 +139,7 @@ class OVRInterface(Interface):
 
         self._setup_events()
         w, h = get_scaled_resolution()
-        self.rendertexture = renderer.RenderTexture(w, h)
+        self.rendertexture = render.RenderTexture(w, h)
         logger.log('Renderbuffer size: {}x{}'.format(w, h))
 
         self.pp_program = self._build_postprocess_program()
@@ -157,9 +157,9 @@ class OVRInterface(Interface):
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
             half = int(w/2)
             glViewport(0, 0, half, h)
-            renderer.render_universe(self.universe, 'left')
+            render.render_universe(self.universe, 'left')
             glViewport(half, 0, half, h)
-            renderer.render_universe(self.universe, 'right')
+            render.render_universe(self.universe, 'right')
 
         # Render screen quad.
         w, h = get_resolution()
@@ -182,13 +182,13 @@ class OVRInterface(Interface):
         self.pp_program.set_uniform('scale', (1/4 * dist_scale,
                                                (1/4)*dist_scale*aspect))
         self.pp_program.set_uniform('warp_param', hmd_warp)
-        renderer.draw_handles([rh[0]])
+        render.draw_handles([rh[0]])
 
         lens_center = (1 - lens_center[0], lens_center[1])
   
         self.pp_program.set_uniform('lens_center', lens_center)
          
-        renderer.draw_handles([rh[1]])
+        render.draw_handles([rh[1]])
 
 
     def __exit__(self, t, value, traceback):
@@ -251,10 +251,10 @@ class OVRInterface(Interface):
             }
         }
         '''
-        p = renderer.Program(glCreateProgram(), 'pp_program')
-        p.attach_shader(renderer.create_shader(
+        p = render.Program(glCreateProgram(), 'pp_program')
+        p.attach_shader(render.create_shader(
             vertex_src, GL_VERTEX_SHADER, 'pp_vertex'))
-        p.attach_shader(renderer.create_shader(
+        p.attach_shader(render.create_shader(
             frag_src, GL_FRAGMENT_SHADER, 'pp_frag'))
         p.link()
 
@@ -298,9 +298,9 @@ class OVRInterface(Interface):
                 1.0 , 1.0,
                 ]
 
-        return [renderer.RenderHandle.from_triangles_and_texcoords(
+        return [render.RenderHandle.from_triangles_and_texcoords(
                     program, verts_left, texcoords_left),
-                renderer.RenderHandle.from_triangles_and_texcoords(
+                render.RenderHandle.from_triangles_and_texcoords(
                     program, verts_right, texcoords_right)
                 ]
 

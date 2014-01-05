@@ -88,6 +88,10 @@ class Program(object):
 
 
 class RenderHandle(object):
+    '''Contains all necessary pointers to make a draw call.
+    Should be used by higher level libraries to provide Agent-creating functions
+    that hide get_render_handles
+    '''
     def __init__(self, program, vao, num_elements):
         self.program = program
         self.vao = vao
@@ -155,6 +159,12 @@ class RenderHandle(object):
 
 
 class RenderTexture(object):
+    '''Render to texture.
+    Use: 
+     with render_texture:
+         ... draw calls...
+     do_some_postprocessing(...)
+     '''
     def __init__(self, width, height):
         self.width = width
         self.height = height

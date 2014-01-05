@@ -2,7 +2,7 @@ from __future__ import (print_function, division, absolute_import)
 
 from gl import *
 
-from renderer import Program, RenderHandle, create_shader
+from render import Program, RenderHandle, create_shader
 from universe import Agent, Universe
 
 def make_simple_program():
