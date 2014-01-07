@@ -113,13 +113,13 @@ class Cube(Primitive):
 
 
 class PrimitiveUniverse(Universe):
-    def __init__(self, devinfo):
+    def __init__(self, hmdinfo):
         '''devinfo is an instance of HMDInfo or None. OVR setup
         is decided based on that.
         '''
         super(PrimitiveUniverse, self).__init__()
         global PROGRAM
-        use_ovr = not devinfo is None
+        use_ovr = not hmdinfo is None
 
         init_gl(use_ovr)
         if PROGRAM is None:
@@ -128,7 +128,7 @@ class PrimitiveUniverse(Universe):
         self.primitives = []
 
         if use_ovr:
-            self.enable_ovr(devinfo)
+            self.hmdinfo = hmdinfo
     
     
     def attach_primitive(self, p):

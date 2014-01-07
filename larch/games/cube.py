@@ -7,7 +7,6 @@ from __future__ import (print_function, division, absolute_import)
 from gl import *
 
 import primitive
-from interface import OVRInterface
 
 
 class HappyCube(primitive.Cube):
@@ -41,7 +40,7 @@ def new(interface_class):
     class SimpleGame(interface_class):
         def begin(self):
             super(SimpleGame, self).begin()
-            self.universe = HappyUniverse(self.devinfo)
+            self.universe = HappyUniverse(self.hmdinfo)
             self.universe.attach_primitive(HappyCube())
 
     return SimpleGame

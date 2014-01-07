@@ -48,7 +48,7 @@ class Interface(object):
                 blue_size = 8)
         self.universe = None
         self._window = None
-        self.devinfo = None  # Says that this interface does not support OVR
+        self.hmdinfo = None  # Says that this interface does not support OVR
 
 
     def __enter__(self):
@@ -97,7 +97,7 @@ class OVRInterface(Interface):
         self.rendertexture = None
         self.screen_quads_rh = None
         self.pp_program = None
-        self.devinfo = None
+        self.hmdinfo = None
         self.device = None
 
 
@@ -117,8 +117,8 @@ class OVRInterface(Interface):
 
         print(self.devices)
         self.device = self.devices[0]
-        self.devinfo = ovr.HMDInfo()
-        assert self.device.GetDeviceInfo(self.devinfo)
+        self.hmdinfo = ovr.HMDInfo()
+        assert self.device.GetDeviceInfo(self.hmdinfo)
 
         ############### Search for ovr screen.
         # The only case where the default display is not what we want is some
@@ -171,14 +171,14 @@ class OVRInterface(Interface):
         glViewport(0, 0, w, h)
         rh = self.screen_quads_rh
         
-        hsize = self.devinfo.HScreenSize
-        lsd = self.devinfo.LensSeparationDistance
+        hsize = self.hmdinfo.HScreenSize
+        lsd = self.hmdinfo.LensSeparationDistance
         lc_s = (hsize - lsd) / (2 * hsize)
 
         lens_center = (lc_s, 0.5)
         
         dist_scale = 1 / OVR_FRAME_SCALE
-        hmd_warp = self.devinfo.DistortionK
+        hmd_warp = self.hmdinfo.DistortionK
         # Set up uniforms.
         self.pp_program.set_uniform('lens_center', lens_center)
         self.pp_program.set_uniform('scale_in', (4, 4/aspect))

@@ -1,9 +1,10 @@
 from __future__ import (print_function, division, absolute_import)
 
 
-import os
-import sys
-
+import sys, os
+myPath = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, myPath + '/../')
+sys.path.insert(0, myPath + '/../larch')
 
 from glm import mat4x4
 

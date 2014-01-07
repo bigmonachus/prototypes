@@ -36,15 +36,8 @@ class Universe(Agent):
         self.modelview = mat4x4.identity()
         self.matstack = []
         self.head = ()
-        self.devinfo = None
+        self.hmdinfo = None
         self.program = None
-        self.use_ovr = False
-
-
-    def enable_ovr(self, devinfo):
-        """HMDInfo Needed for self.setup_rift_persp"""
-        self.devinfo = devinfo
-        self.use_ovr = True
 
 
     def push(self, mat):
@@ -65,12 +58,13 @@ class Universe(Agent):
     def setup_rift_persp(self, eye, znear, zfar):
         '''self.program must have eye_ipd
         '''
-        if not self.use_ovr:
+        if self.hmdinfo is None:
             return
-        rift_ar = self.devinfo.HResolution / (2 * self.devinfo.VResolution)
 
-        v_size = self.devinfo.VScreenSize
-        eye_to_screen = self.devinfo.EyeToScreenDistance
+        rift_ar = self.hmdinfo.HResolution / (2 * self.hmdinfo.VResolution)
+
+        v_size = self.hmdinfo.VScreenSize
+        eye_to_screen = self.hmdinfo.EyeToScreenDistance
         v_fov = 2 * atan(OVR_FRAME_SCALE * v_size / (2 * eye_to_screen))
 
         rift_persp = mat4x4.zero()
@@ -82,12 +76,12 @@ class Universe(Agent):
         rift_persp.i32 = (zfar + znear) / (znear - zfar)
         rift_persp.i23 = -1
 
-        lens_separation = self.devinfo.LensSeparationDistance
-        view_center = self.devinfo.HScreenSize / 4
+        lens_separation = self.hmdinfo.LensSeparationDistance
+        view_center = self.hmdinfo.HScreenSize / 4
         eye_shift = view_center - lens_separation/2
-        offset = 4 * eye_shift / self.devinfo.HScreenSize
+        offset = 4 * eye_shift / self.hmdinfo.HScreenSize
 
-        ipd = self.devinfo.InterpupillaryDistance
+        ipd = self.hmdinfo.InterpupillaryDistance
 
         if eye == 'right':
             translation_mat = mat4x4.translation_fff(-offset, 0, 0)
