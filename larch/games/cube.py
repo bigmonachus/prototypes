@@ -15,7 +15,7 @@ class HappyCube(primitive.Cube):
         super(HappyCube, self).__init__()
         self.rot_vel = 0.1
         self.rotation = ((0.9, 0.7, -0.3), 0.0)
-        self.translation = (0, 0, -6)
+        self.translation = (0, 0, -3)
         self.cumtime = 0
 
 
@@ -26,7 +26,10 @@ class HappyCube(primitive.Cube):
                 self.rotation[1] + self.rot_vel*2*3.14*dt)
 
 
-################################################################################
+class HappyUniverse(primitive.PrimitiveUniverse):
+    def render_prelude(self):
+        super(HappyUniverse, self).render_prelude()
+        glLineWidth(2.0)
 
 
 def new(interface_class):
@@ -38,7 +41,7 @@ def new(interface_class):
     class SimpleGame(interface_class):
         def begin(self):
             super(SimpleGame, self).begin()
-            self.universe = primitive.PrimitiveUniverse(self.devinfo)
+            self.universe = HappyUniverse(self.devinfo)
             self.universe.attach_primitive(HappyCube())
 
     return SimpleGame

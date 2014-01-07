@@ -24,8 +24,10 @@ import render
 
 OVR_FRAME_SCALE = 1.8
 
+
 def get_scaled_resolution():
     return int(1280 * OVR_FRAME_SCALE), int(800 * OVR_FRAME_SCALE)
+
 
 def get_resolution():
     return 1280, 800
