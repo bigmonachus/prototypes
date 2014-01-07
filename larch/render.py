@@ -20,7 +20,7 @@ def draw_handles(render_handles):
 
 
 def render_universe(universe, eye):
-    universe.setup_rift_persp(eye, 0.1, 1000)
+    universe.render_prelude(eye)
     draw_handles(universe.get_render_handles())
 
 

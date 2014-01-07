@@ -50,12 +50,13 @@ class Universe(Agent):
         self.modelview = self.matstack.pop()
 
 
-    def render_prelude(self):
+    def render_prelude(self, eye):
         """Setup opengl state for this universe"""
-        pass
+        if self.hmdinfo:
+            self.setup_hmd_persp(eye, 0.01, 100)
 
 
-    def setup_rift_persp(self, eye, znear, zfar):
+    def setup_hmd_persp(self, eye, znear, zfar):
         '''self.program must have eye_ipd
         '''
         if self.hmdinfo is None:
@@ -69,7 +70,7 @@ class Universe(Agent):
 
         rift_persp = mat4x4.zero()
 
-        t = 1 / (tan(v_fov/2))
+        t = 1 / (tan(v_fov / 2))
         rift_persp.i00 = t / rift_ar
         rift_persp.i11 = t
         rift_persp.i22 = zfar / (znear - zfar)
@@ -78,7 +79,7 @@ class Universe(Agent):
 
         lens_separation = self.hmdinfo.LensSeparationDistance
         view_center = self.hmdinfo.HScreenSize / 4
-        eye_shift = view_center - lens_separation/2
+        eye_shift = view_center - lens_separation / 2
         offset = 4 * eye_shift / self.hmdinfo.HScreenSize
 
         ipd = self.hmdinfo.InterpupillaryDistance
@@ -86,10 +87,10 @@ class Universe(Agent):
         if eye == 'right':
             translation_mat = mat4x4.translation_fff(-offset, 0, 0)
             rift_persp = translation_mat.mul_mat4(rift_persp)
-            self.program.set_uniform('eye_ipd', (-ipd/2,))
+            self.program.set_uniform('eye_ipd', (-ipd / 2,))
         elif eye == 'left':
             translation_mat = mat4x4.translation_fff(offset, 0, 0)
             rift_persp = translation_mat.mul_mat4(rift_persp)
-            self.program.set_uniform('eye_ipd', (ipd/2,))
+            self.program.set_uniform('eye_ipd', (ipd / 2,))
 
         self.program.set_uniform('persp', rift_persp)

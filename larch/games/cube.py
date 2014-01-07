@@ -26,8 +26,8 @@ class HappyCube(primitive.Cube):
 
 
 class HappyUniverse(primitive.PrimitiveUniverse):
-    def render_prelude(self):
-        super(HappyUniverse, self).render_prelude()
+    def render_prelude(self, eye):
+        super(HappyUniverse, self).render_prelude(eye)
         glLineWidth(2.0)
 
 

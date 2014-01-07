@@ -136,7 +136,6 @@ class PrimitiveUniverse(Universe):
     
     
     def get_render_handles(self):
-        self.render_prelude()
         rhs = []
         for p in self.primitives:
             rhs.extend(p.get_render_handles())
@@ -147,9 +146,9 @@ class PrimitiveUniverse(Universe):
         for p in self.primitives:
             p.tick(dt)
     
-    
-    def render_prelude(self):
-        Universe.render_prelude(self)
+
+    def render_prelude(self, eye):
+        Universe.render_prelude(self, eye)
         glClearColor(1, 1, 1, 1)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         
