@@ -48,21 +48,22 @@ class Program(object):
             self.uniforms[name] = loc
         else:
             loc = self.uniforms[name]
+        
+        # Case 1: 4x4 Matrix
         if type(thing) is glm.types.mat4x4:
             with self:
                 glUniformMatrix4fv(loc, False, thing.to_c_array())
-        if len(thing) == 4:
-            with self:
-                glUniform4fv(loc, thing)
-        if len(thing) == 3:
-            with self:
-                glUniform3fv(loc, thing)
-        if len(thing) == 2:
-            with self:
-                glUniform2fv(loc, thing)
-        if len(thing) == 1:
-            with self:
-                glUniform1fv(loc, thing)
+            return
+        
+        # Case 2: Call one of these:
+        uniform_funcs = [glUniform1fv,
+                         glUniform2fv,
+                         glUniform3fv,
+                         glUniform4fv,
+                         ]
+        with self:
+                uniform_funcs[len(thing) - 1](loc, thing)
+        return
 
 
     def attach_shader(self, shader):
