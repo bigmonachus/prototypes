@@ -61,6 +61,7 @@ class Universe(Agent):
         '''
         if self.hmdinfo is None:
             return
+        assert eye == 'left' or eye == 'right'
 
         rift_ar = self.hmdinfo.HResolution / (2 * self.hmdinfo.VResolution)
 

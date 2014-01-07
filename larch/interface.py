@@ -39,13 +39,13 @@ class Interface(object):
          self.universe """
     def __init__(self):
         self.gl_config = pyglet.gl.Config(
-                major_version = 3,
-                minor_version = 2,
-                double_buffer = True,
-                depth_size = 24,
-                red_size = 8,
-                green_size = 8,
-                blue_size = 8)
+                major_version=3,
+                minor_version=2,
+                double_buffer=True,
+                depth_size=24,
+                red_size=8,
+                green_size=8,
+                blue_size=8)
         self.universe = None
         self._window = None
         self.hmdinfo = None  # Says that this interface does not support OVR
@@ -135,10 +135,10 @@ class OVRInterface(Interface):
 
         # Fulscreen oculus window.
         self._window = pyglet.window.Window(
-                fullscreen = True,
-                screen = oculus_screen,
-                vsync = True, config = self.gl_config,
-                style = pyglet.window.Window.WINDOW_STYLE_BORDERLESS)
+                fullscreen=True,
+                screen=oculus_screen,
+                vsync=True, config=self.gl_config,
+                style=pyglet.window.Window.WINDOW_STYLE_BORDERLESS)
 
         self._setup_events()
         w, h = get_scaled_resolution()
@@ -155,10 +155,9 @@ class OVRInterface(Interface):
 
     def _draw(self):
         w, h = get_scaled_resolution()
-        aspect = w / h
         with self.rendertexture:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            half = int(w/2)
+            half = int(w / 2)
             glViewport(0, 0, half, h)
             render.render_universe(self.universe, 'left')
             glViewport(half, 0, half, h)
@@ -170,27 +169,19 @@ class OVRInterface(Interface):
         glActiveTexture(GL_TEXTURE0)
         glViewport(0, 0, w, h)
         rh = self.screen_quads_rh
-        
+
         hsize = self.hmdinfo.HScreenSize
         lsd = self.hmdinfo.LensSeparationDistance
         lc_s = (hsize - lsd) / (2 * hsize)
 
         lens_center = (lc_s, 0.5)
-        
-        dist_scale = 1 / OVR_FRAME_SCALE
-        hmd_warp = self.hmdinfo.DistortionK
-        # Set up uniforms.
+
         self.pp_program.set_uniform('lens_center', lens_center)
-        self.pp_program.set_uniform('scale_in', (4, 4/aspect))
-        self.pp_program.set_uniform('scale', (1/4 * dist_scale,
-                                               (1/4)*dist_scale*aspect))
-        self.pp_program.set_uniform('warp_param', hmd_warp)
         render.draw_handles([rh[0]])
 
         lens_center = (1 - lens_center[0], lens_center[1])
-  
+
         self.pp_program.set_uniform('lens_center', lens_center)
-         
         render.draw_handles([rh[1]])
 
 
@@ -234,12 +225,12 @@ class OVRInterface(Interface):
         {
             vec2 theta = (vs_texcoord - lens_center) * scale_in;
             float rsq = theta.x * theta.x + theta.y * theta.y;
-            vec2 rvec = theta * (warp_param.x + 
+            vec2 rvec = theta * (warp_param.x +
                                  warp_param.y * rsq +
                                  warp_param.z * rsq * rsq +
                                  warp_param.w * rsq * rsq * rsq);
             vec2 texcoord = lens_center + scale * rvec;
-            
+
 
             vec4 color = texture(frame, texcoord);
             if (!all(equal(clamp(texcoord, lens_center - vec2(0.25, 0.5),
@@ -261,17 +252,29 @@ class OVRInterface(Interface):
             frag_src, GL_FRAGMENT_SHADER, 'pp_frag'))
         p.link()
 
+        w, h = get_scaled_resolution()
+        w, h = get_resolution()
+        aspect = w / h
+
+        dist_scale = 1 / OVR_FRAME_SCALE
+        hmd_warp = self.hmdinfo.DistortionK
+        # Set up uniforms.
+        p.set_uniform('scale_in', (4, 4 / aspect))
+        p.set_uniform('scale', (1 / 4 * dist_scale,
+                               (1 / 4) * dist_scale * aspect))
+        p.set_uniform('warp_param', hmd_warp)
+
         return p
 
 
     def _cook_screen_quads(self, program):
         verts_left = [
-                0.0 , -1.0  ,0.0,
-                -1.0 , -1.0 ,0.0,
-                0.0  , 1.0  ,0.0,
-                -1.0 , -1.0  ,0.0,
-                -1.0 , 1.0 ,0.0,
-                0.0  , 1.0  ,0.0,
+                0.0 , -1.0  , 0.0,
+                - 1.0 , -1.0 , 0.0,
+                0.0  , 1.0  , 0.0,
+                - 1.0 , -1.0  , 0.0,
+                - 1.0 , 1.0 , 0.0,
+                0.0  , 1.0  , 0.0,
                 ]
 
         texcoords_left = [
@@ -284,12 +287,12 @@ class OVRInterface(Interface):
                 ]
 
         verts_right = [
-                1.0 , -1.0  ,0.0,
-                0.0 , -1.0 ,0.0,
-                1.0  , 1.0  ,0.0,
-                0.0 , -1.0  ,0.0,
-                0.0 , 1.0 ,0.0,
-                1.0  , 1.0  ,0.0,
+                1.0 , -1.0  , 0.0,
+                0.0 , -1.0 , 0.0,
+                1.0  , 1.0  , 0.0,
+                0.0 , -1.0  , 0.0,
+                0.0 , 1.0 , 0.0,
+                1.0  , 1.0  , 0.0,
                 ]
 
         texcoords_right = [
