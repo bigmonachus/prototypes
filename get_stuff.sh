@@ -12,6 +12,8 @@ if [ ! -f build_lock ]; then
     checkret
     pip install --upgrade pyglet
     checkret
+    pip install --upgrade pytest
+    checkret
 fi
 
 if [ ! -d pyopengl-cffi ] && [ ! -f build_lock ]; then
