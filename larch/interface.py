@@ -19,7 +19,15 @@ except ImportError:
     print('No support for ovr.')
 
 import logger
-import renderer
+import render
+
+
+OVR_FRAME_SCALE = 1.8
+
+
+def get_scaled_resolution():
+    return int(1280 * OVR_FRAME_SCALE), int(800 * OVR_FRAME_SCALE)
+
 
 
 def get_resolution():
@@ -41,6 +49,7 @@ class Interface(object):
                 blue_size = 8)
         self.universe = None
         self._window = None
+        self.hmdinfo = None  # Says that this interface does not support OVR
 
 
     def __enter__(self):
@@ -62,7 +71,7 @@ class Interface(object):
 
 
     def _draw(self):
-        renderer.render_universe(self.universe, 'center')
+        render.render_universe(self.universe, 'center')
 
 
     def begin(self):
@@ -89,10 +98,11 @@ class OVRInterface(Interface):
         self.devices = []
         self.dm = None
         self.rendertexture = None
-        self.screen_triangle_rh = None
+        self.screen_quads_rh = None
         self.pp_program = None
-        self.devinfo = None
+        self.hmdinfo = None
         self.device = None
+
 
     def __enter__(self):
         ovr.System.Init(ovr.Log.ConfigureDefaultLog(ovr.LogMask_All))
@@ -110,8 +120,8 @@ class OVRInterface(Interface):
 
         print(self.devices)
         self.device = self.devices[0]
-        self.devinfo = ovr.HMDInfo()
-        assert self.device.GetDeviceInfo(self.devinfo)
+        self.hmdinfo = ovr.HMDInfo()
+        assert self.device.GetDeviceInfo(self.hmdinfo)
 
         ############### Search for ovr screen.
         # The only case where the default display is not what we want is some
@@ -134,12 +144,12 @@ class OVRInterface(Interface):
                 style = pyglet.window.Window.WINDOW_STYLE_BORDERLESS)
 
         self._setup_events()
-        rb_width = 1280
-        rb_height = 800
-        self.rendertexture = renderer.RenderTexture(rb_width, rb_height)
+        w, h = get_scaled_resolution()
+        self.rendertexture = render.RenderTexture(w, h)
+        logger.log('Renderbuffer size: {}x{}'.format(w, h))
 
         self.pp_program = self._build_postprocess_program()
-        self.screen_triangle_rh = self._cook_screen_triangle(self.pp_program)
+        self.screen_quads_rh = self._cook_screen_quads(self.pp_program)
 
         self.begin()
 
@@ -147,24 +157,35 @@ class OVRInterface(Interface):
 
 
     def _draw(self):
+        w, h = get_scaled_resolution()
         with self.rendertexture:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            w, h = get_resolution()
-            half = int(w/2)
+            half = int(w / 2)
             glViewport(0, 0, half, h)
-            renderer.render_universe(self.universe, 'left')
+            render.render_universe(self.universe, 'left')
             glViewport(half, 0, half, h)
-            renderer.render_universe(self.universe, 'right')
+            render.render_universe(self.universe, 'right')
 
-        # Test: do this with our program.
+        # Render screen quad.
+        w, h = get_resolution()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glActiveTexture(GL_TEXTURE0)
         glViewport(0, 0, w, h)
-        rh = self.screen_triangle_rh
-        renderer.draw_handles([self.screen_triangle_rh])
-        # Test, overdraw what I want to see
-        glViewport(half, 0, half, h)
-        renderer.render_universe(self.universe, 'right')
+        rh = self.screen_quads_rh
+
+        hsize = self.hmdinfo.HScreenSize
+        lsd = self.hmdinfo.LensSeparationDistance
+        lc_s = (hsize - lsd) / (2 * hsize)
+
+        lens_center = (lc_s, 0.5)
+
+        self.pp_program.set_uniform('lens_center', lens_center)
+        render.draw_handles([rh[0]])
+
+        lens_center = (1 - lens_center[0], lens_center[1])
+
+        self.pp_program.set_uniform('lens_center', lens_center)
+        render.draw_handles([rh[1]])
 
 
     def __exit__(self, t, value, traceback):
@@ -197,42 +218,98 @@ class OVRInterface(Interface):
         out vec4 out_color;
 
         uniform sampler2D frame;
+        uniform vec2 lens_center;
+        uniform vec2 scale;
+        uniform vec2 scale_in;
+        uniform vec2 trans_in;
+        uniform vec4 warp_param;
 
         void main(void)
         {
-            vec4 color = texture(frame, vs_texcoord);
-            out_color = color;
+            vec2 theta = (vs_texcoord - lens_center) * scale_in;
+            float rsq = theta.x * theta.x + theta.y * theta.y;
+            vec2 rvec = theta * (warp_param.x +
+                                 warp_param.y * rsq +
+                                 warp_param.z * rsq * rsq +
+                                 warp_param.w * rsq * rsq * rsq);
+            vec2 texcoord = lens_center + scale * rvec;
+
+
+            vec4 color = texture(frame, texcoord);
+            if (!all(equal(clamp(texcoord, lens_center - vec2(0.25, 0.5),
+                                           lens_center + vec2(0.25, 0.5)),
+                           texcoord)))
+            {
+                out_color = vec4(0,1,0,1);
+            }
+            else
+            {
+                out_color = color;
+            }
         }
         '''
-        p = renderer.Program(glCreateProgram(), 'pp_program')
-        p.attach_shader(renderer.create_shader(
+        p = render.Program(glCreateProgram(), 'pp_program')
+        p.attach_shader(render.create_shader(
             vertex_src, GL_VERTEX_SHADER, 'pp_vertex'))
-        p.attach_shader(renderer.create_shader(
+        p.attach_shader(render.create_shader(
             frag_src, GL_FRAGMENT_SHADER, 'pp_frag'))
         p.link()
+
+        w, h = get_scaled_resolution()
+        w, h = get_resolution()
+        aspect = w / h
+
+        dist_scale = 1 / OVR_FRAME_SCALE
+        hmd_warp = self.hmdinfo.DistortionK
+        # Set up uniforms.
+        p.set_uniform('scale_in', (4, 4 / aspect))
+        p.set_uniform('scale', (1 / 4 * dist_scale,
+                               (1 / 4) * dist_scale * aspect))
+        p.set_uniform('warp_param', hmd_warp)
+
         return p
 
 
-    def _cook_screen_triangle(self, program):
-        vertices = [
-                1.0 , -1.0  ,0.0,
-                -1.0 , -1.0 ,0.0,
-                1.0  , 1.0  ,0.0,
-                -1.0 , -1.0  ,0.0,
-                -1.0 , 1.0 ,0.0,
-                1.0  , 1.0  ,0.0,
+    def _cook_screen_quads(self, program):
+        verts_left = [
+                0.0 , -1.0  , 0.0,
+                - 1.0 , -1.0 , 0.0,
+                0.0  , 1.0  , 0.0,
+                - 1.0 , -1.0  , 0.0,
+                - 1.0 , 1.0 , 0.0,
+                0.0  , 1.0  , 0.0,
                 ]
-        texcoords = [
-                1.0 , 0.0,
+
+        texcoords_left = [
+                0.5 , 0.0,
                 0.0 , 0.0,
-                1.0 , 1.0,
+                0.5 , 1.0,
                 0.0 , 0.0,
                 0.0 , 1.0,
+                0.5 , 1.0,
+                ]
+
+        verts_right = [
+                1.0 , -1.0  , 0.0,
+                0.0 , -1.0 , 0.0,
+                1.0  , 1.0  , 0.0,
+                0.0 , -1.0  , 0.0,
+                0.0 , 1.0 , 0.0,
+                1.0  , 1.0  , 0.0,
+                ]
+
+        texcoords_right = [
+                1.0 , 0.0,
+                0.5 , 0.0,
+                1.0 , 1.0,
+                0.5 , 0.0,
+                0.5 , 1.0,
                 1.0 , 1.0,
                 ]
 
-        return renderer.RenderHandle.from_triangles_and_texcoords(
-                program, vertices, texcoords)
-
-
+        return [render.RenderHandle.from_triangles_and_texcoords(
+                    program, verts_left, texcoords_left),
+                render.RenderHandle.from_triangles_and_texcoords(
+                    program, verts_right, texcoords_right)
+                ]
 

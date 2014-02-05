@@ -20,7 +20,7 @@ def draw_handles(render_handles):
 
 
 def render_universe(universe, eye):
-    universe.setup_rift_persp(eye, 0.1, 1000)
+    universe.render_prelude(eye)
     draw_handles(universe.get_render_handles())
 
 
@@ -39,6 +39,7 @@ class Program(object):
         self.name = name
         self.uniforms = {}
 
+
     def set_uniform(self, name, thing):
         """Currently doesn't support int uniforms"""
         if name not in self.uniforms:
@@ -47,15 +48,22 @@ class Program(object):
             self.uniforms[name] = loc
         else:
             loc = self.uniforms[name]
+        
+        # Case 1: 4x4 Matrix
         if type(thing) is glm.types.mat4x4:
             with self:
                 glUniformMatrix4fv(loc, False, thing.to_c_array())
-        if len(thing) == 3:
-            with self:
-                glUniform3fv(loc, thing)
-        if len(thing) == 1:
-            with self:
-                glUniform1fv(loc, thing)
+            return
+        
+        # Case 2: Call one of these:
+        uniform_funcs = [glUniform1fv,
+                         glUniform2fv,
+                         glUniform3fv,
+                         glUniform4fv,
+                         ]
+        with self:
+                uniform_funcs[len(thing) - 1](loc, thing)
+        return
 
 
     def attach_shader(self, shader):
@@ -81,6 +89,10 @@ class Program(object):
 
 
 class RenderHandle(object):
+    '''Contains all necessary pointers to make a draw call.
+    Should be used by higher level libraries to provide Agent-creating functions
+    that hide get_render_handles
+    '''
     def __init__(self, program, vao, num_elements):
         self.program = program
         self.vao = vao
@@ -129,8 +141,8 @@ class RenderHandle(object):
         vbos =  glGenBuffers(2)
 
         attrib_locs = [
-                glGetAttribLocation(program.idt, "in_pos"),
-                glGetAttribLocation(program.idt, "in_texcoord")
+                glGetAttribLocation(program.idt, 'in_pos'),
+                glGetAttribLocation(program.idt, 'in_texcoord')
                 ]
 
         glBindVertexArray(va[0])
@@ -148,6 +160,12 @@ class RenderHandle(object):
 
 
 class RenderTexture(object):
+    '''Render to texture.
+    Use: 
+     with render_texture:
+         ... draw calls...
+     do_some_postprocessing(...)
+     '''
     def __init__(self, width, height):
         self.width = width
         self.height = height
@@ -224,6 +242,7 @@ def print_shader_log(shader, name):
     source = glGetShaderSource(shader)
     msglog = glGetShaderInfoLog(shader)
     map_source_to_log(source, msglog, logfunc)
+
 
 def print_program_log(program, name):
     judgement, logfunc = {

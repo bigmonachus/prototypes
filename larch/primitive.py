@@ -5,11 +5,11 @@ from gl import *
 from glm import mat4x4
 
 from interface import get_resolution
-from renderer import Program, create_shader, RenderHandle
-from universe import Agent
+from render import Program, create_shader, RenderHandle
+from universe import Agent, Universe
 
 
-PROGRAM = None
+PROGRAM = None  # Lazily created when the first agent needs it.
 ASPECT_RATIO = 1.0
 
 
@@ -21,8 +21,6 @@ def init_gl(with_ovr):
     else:
         ASPECT_RATIO = int(w/2) / h
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-    glEnable(GL_CULL_FACE)
-    glCullFace(GL_FRONT)  # Defined cube with ccw faces...
 
 
 class Primitive(Agent):
@@ -107,12 +105,53 @@ class Cube(Primitive):
                 ]
 
         colors = [item for sublist in
-                [[0.5 , 0.1 , 0.5] for _ in xrange(36)]
+                  [[0.5 , 0.1 , 0.5] for _ in xrange(36)]
                 for item in sublist]
 
         self.render_handle = RenderHandle.from_triangles(
                 PROGRAM, vertices, colors)
 
+
+class PrimitiveUniverse(Universe):
+    def __init__(self, hmdinfo):
+        '''devinfo is an instance of HMDInfo or None. OVR setup
+        is decided based on that.
+        '''
+        super(PrimitiveUniverse, self).__init__()
+        global PROGRAM
+        use_ovr = not hmdinfo is None
+
+        init_gl(use_ovr)
+        if PROGRAM is None:
+            PROGRAM = PrimitiveProgram()
+        self.program = PROGRAM
+        self.primitives = []
+
+        if use_ovr:
+            self.hmdinfo = hmdinfo
+    
+    
+    def attach_primitive(self, p):
+        self.primitives.append(p)
+    
+    
+    def get_render_handles(self):
+        rhs = []
+        for p in self.primitives:
+            rhs.extend(p.get_render_handles())
+        return rhs
+    
+
+    def tick(self, dt):
+        for p in self.primitives:
+            p.tick(dt)
+    
+
+    def render_prelude(self, eye):
+        Universe.render_prelude(self, eye)
+        glClearColor(1, 1, 1, 1)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        
 
 class PrimitiveProgram(Program):
     def __init__(self):
@@ -200,14 +239,6 @@ class PrimitiveProgram(Program):
         self.attach_shader(
                 create_shader(frag_src, GL_FRAGMENT_SHADER, 'frag'))
         self.link()
-        self.setup_persp(None)
-
-    def setup_persp(self, matrix):
-        if matrix == None:
-            persp_mat = mat4x4.perspective(75.0, ASPECT_RATIO, 0.001, 100)
-        else:
-            persp_mat = matrix
-
-        self.set_uniform('persp', persp_mat)
-
-
+        # Setup a default perspective matrix.
+        self.set_uniform('persp',
+                         mat4x4.perspective(75.0, ASPECT_RATIO, 0.001, 100))

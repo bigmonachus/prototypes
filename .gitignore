@@ -12,5 +12,10 @@ pyopengl-cffi
 # apitrace files
 *.trace
 
+# ide / editor crap
+.project
+.pydevproject
+tags
+
 # get_stuff.sh crap
 build_lock
