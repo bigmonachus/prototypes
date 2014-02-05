@@ -10,7 +10,7 @@ checkret () {
 if [ ! -f build_lock ]; then
     pip install --upgrade cffi
     checkret
-    pip install --upgrade pyglet
+    pip install --upgrade hg+https://pyglet.googlecode.com/hg/
     checkret
 fi
 

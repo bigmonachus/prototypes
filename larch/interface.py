@@ -21,17 +21,19 @@ except ImportError:
 import logger
 import renderer
 
+
 def get_resolution():
     return 1280, 800
+
 
 class Interface(object):
     """Abstrace Interface class.
     Subclass must define in begin():
          self.universe """
     def __init__(self):
-        self.gl_config = pyglet.gl.Config(
+        self._gl_config = pyglet.gl.Config(
                 major_version = 3,
-                minor_version = 2,
+                minor_version = 3,
                 double_buffer = True,
                 depth_size = 24,
                 red_size = 8,
@@ -40,10 +42,13 @@ class Interface(object):
         self.universe = None
         self._window = None
 
+
     def __enter__(self):
         w, h = get_resolution()
 
-        self._window = pyglet.window.Window(w, h, config=self.gl_config)
+        self._window = pyglet.window.Window(w, h, config=self._gl_config)
+        print('Created pyglet window. GL context version {}'.format(
+            self._window.context.get_info().get_version()))
         self._setup_events()
         self.begin()
         return self
@@ -125,7 +130,7 @@ class OVRInterface(Interface):
         self._window = pyglet.window.Window(
                 fullscreen = True,
                 screen = oculus_screen,
-                vsync = True, config = self.gl_config,
+                vsync = True, config = self._gl_config,
                 style = pyglet.window.Window.WINDOW_STYLE_BORDERLESS)
 
         self._setup_events()
